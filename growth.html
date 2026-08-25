@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>成長記録 - タイガース</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --paper: #F6F2E9;
+        --paper-dark: #ECE5D4;
+        --wood: #6B4A34;
+        --wood-dark: #4E3626;
+        --grass: #2F4A34;
+        --grass-light: #3E5F45;
+        --magnet: #4A90A4;
+        --magnet-dark: #366B7B;
+        --ink: #2A2420;
+        --ink-soft: #6B6154;
+        --brick: #B5482F;
+        --line: #DCD3BE;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Noto Sans JP', sans-serif; background: var(--paper); color: var(--ink); padding-bottom: 40px; -webkit-font-smoothing: antialiased; }
+    .display { font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 900; }
+    .mono { font-family: 'Space Mono', monospace; }
+
+    header { background: var(--wood-dark); color: var(--paper); padding: 16px 18px; display: flex; align-items: center; gap: 10px; }
+    header a { color: var(--paper); text-decoration: none; font-size: 1.1rem; }
+    header .title { font-size: 1.05rem; font-weight: 900; }
+
+    main { max-width: 480px; margin: 0 auto; padding: 16px; }
+
+    /* ログイン画面 */
+    .login-panel { background: white; border-radius: 14px; padding: 24px 20px; margin-top: 20px; }
+    .login-panel h2 { font-size: 1rem; margin-bottom: 16px; }
+    .form-field { margin-bottom: 12px; }
+    .form-field label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--ink-soft); margin-bottom: 4px; }
+    .form-field input, .form-field select {
+        width: 100%; border: 1.5px solid var(--line); border-radius: 8px; padding: 10px;
+        font-size: 0.85rem; font-family: 'Noto Sans JP', sans-serif;
+    }
+    .primary-btn {
+        width: 100%; border: none; background: var(--wood); color: white; font-weight: 700;
+        font-size: 0.88rem; padding: 12px; border-radius: 10px; cursor: pointer; margin-top: 4px;
+    }
+    .error-msg { color: var(--brick); font-size: 0.75rem; margin-top: 8px; }
+    .user-bar { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: var(--ink-soft); margin-bottom: 14px; }
+    .logout-link { color: var(--magnet-dark); text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 0.72rem; font-family: 'Noto Sans JP', sans-serif; }
+
+    /* 選手選択 */
+    .player-select-row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .player-select-row select { flex: 1; }
+    .add-player-btn { border: 1.5px solid var(--grass); background: white; color: var(--grass); font-weight: 700; padding: 0 14px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; }
+
+    /* 記録入力パネル */
+    .record-panel { background: white; border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+    .record-panel h3 { font-size: 0.88rem; margin-bottom: 12px; }
+    .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .metric-grid .form-field.full { grid-column: 1 / -1; }
+    .save-status { font-size: 0.75rem; color: var(--grass); margin-top: 6px; }
+
+    /* 履歴・グラフ */
+    .history-panel { background: white; border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+    .history-panel h3 { font-size: 0.88rem; margin-bottom: 10px; }
+    .metric-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
+    .metric-tab {
+        flex-shrink: 0; border: 1.5px solid var(--line); background: white; color: var(--ink-soft);
+        font-size: 0.7rem; font-weight: 700; padding: 6px 11px; border-radius: 999px; cursor: pointer;
+        font-family: 'Noto Sans JP', sans-serif;
+    }
+    .metric-tab.active { background: var(--magnet); border-color: var(--magnet); color: white; }
+    .graph-wrap { margin-bottom: 10px; }
+    .history-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+    .history-table th, .history-table td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+    .history-table th { color: var(--ink-soft); font-weight: 700; font-size: 0.68rem; }
+    .empty-note { font-size: 0.78rem; color: var(--ink-soft); text-align: center; padding: 20px 0; }
+
+    .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+    <a href="index.html">←</a>
+    <div class="title">📈 成長記録</div>
+</header>
+
+<main>
+    <div id="loginArea">
+        <div class="login-panel">
+            <h2>ログインしてください</h2>
+            <div class="form-field"><label>メールアドレス</label><input id="loginEmail" type="email"></div>
+            <div class="form-field"><label>パスワード</label><input id="loginPassword" type="password"></div>
+            <button class="primary-btn" id="loginBtn">ログイン</button>
+            <div class="error-msg hidden" id="loginError"></div>
+        </div>
+    </div>
+
+    <div id="mainArea" class="hidden">
+        <div class="user-bar">
+            <span id="currentUserEmail"></span>
+            <button class="logout-link" id="logoutBtn">ログアウト</button>
+        </div>
+
+        <div class="player-select-row">
+            <select id="playerSelect"></select>
+            <button class="add-player-btn" id="addPlayerBtn">＋選手追加</button>
+        </div>
+        <div class="form-field hidden" id="addPlayerFormWrap">
+            <label>新しい選手の名前</label>
+            <div style="display:flex; gap:8px;">
+                <input id="newPlayerNameInput" type="text" placeholder="例：山田太郎" style="flex:1;">
+                <button class="add-player-btn" id="confirmAddPlayerBtn">追加</button>
+            </div>
+        </div>
+
+        <div class="record-panel">
+            <h3>新しい記録を入力</h3>
+            <div class="form-field"><label>測定日</label><input id="recordDate" type="date"></div>
+            <div class="metric-grid">
+                <div class="form-field"><label>身長 (cm)</label><input id="metricHeight" type="number" step="0.1"></div>
+                <div class="form-field"><label>体重 (kg)</label><input id="metricWeight" type="number" step="0.1"></div>
+                <div class="form-field"><label>本塁-一塁 (秒)</label><input id="metricSprint" type="number" step="0.01"></div>
+                <div class="form-field"><label>ベースランニング(本塁-本塁) (秒)</label><input id="metricBaseRunning" type="number" step="0.01"></div>
+                <div class="form-field"><label>遠投距離 (m)</label><input id="metricThrow" type="number" step="0.1"></div>
+                <div class="form-field full"><label>ストライク率 (10球中何球)</label><input id="metricStrike" type="number" min="0" max="10" step="1"></div>
+            </div>
+            <button class="primary-btn" id="saveRecordBtn">記録を保存</button>
+            <div class="save-status hidden" id="saveStatus"></div>
+        </div>
+
+        <div class="history-panel">
+            <h3 id="historyTitle">記録の推移</h3>
+            <div class="metric-tabs" id="metricTabs"></div>
+            <div class="graph-wrap"><svg id="graphSvg" viewBox="0 0 300 140" style="width:100%; height:auto; background:var(--paper); border-radius:8px;"></svg></div>
+            <table class="history-table" id="historyTable"></table>
+            <div class="empty-note hidden" id="emptyNote">まだ記録がありません。上のフォームから記録してみましょう。</div>
+        </div>
+    </div>
+</main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import {
+        getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import {
+        getFirestore, collection, addDoc, getDocs, query, where, orderBy, serverTimestamp,
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+    // ===============================================
+    // このプロジェクト専用のFirebase接続設定です。
+    // ===============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyAnZ_Iif_iHbE-jmrc-XcCS0tLeUADPhqo",
+        authDomain: "liners-db85c.firebaseapp.com",
+        projectId: "liners-db85c",
+        storageBucket: "liners-db85c.firebasestorage.app",
+        messagingSenderId: "229305968070",
+        appId: "1:229305968070:web:bbca2e6fa562e6ff9b3ec7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const METRICS = [
+        { key: 'height', label: '身長', unit: 'cm' },
+        { key: 'weight', label: '体重', unit: 'kg' },
+        { key: 'sprint', label: '本塁-一塁', unit: '秒' },
+        { key: 'baseRunning', label: 'ベースランニング(本塁-本塁)', unit: '秒' },
+        { key: 'throwDistance', label: '遠投距離', unit: 'm' },
+        { key: 'strikeRate', label: 'ストライク率', unit: '/10' },
+    ];
+
+    let players = [];
+    let currentPlayerId = null;
+    let currentMetric = 'height';
+    let currentRecords = [];
+
+    // ===== ログイン関連 =====
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const errorEl = document.getElementById('loginError');
+        errorEl.classList.add('hidden');
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (e) {
+            errorEl.textContent = 'ログインできませんでした。メールアドレスとパスワードをご確認ください。';
+            errorEl.classList.remove('hidden');
+        }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            document.getElementById('loginArea').classList.add('hidden');
+            document.getElementById('mainArea').classList.remove('hidden');
+            document.getElementById('currentUserEmail').textContent = user.email;
+            await loadPlayers();
+        } else {
+            document.getElementById('loginArea').classList.remove('hidden');
+            document.getElementById('mainArea').classList.add('hidden');
+        }
+    });
+
+    // ===== 選手管理 =====
+    async function loadPlayers() {
+        try {
+            const snap = await getDocs(collection(db, 'players'));
+            players = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            players.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ja'));
+            renderPlayerSelect();
+            if (players.length > 0) {
+                currentPlayerId = players[0].id;
+                await loadHistory();
+            }
+        } catch (e) {
+            alert('選手一覧を読み込めませんでした。\n\nエラー内容：' + e.message);
+        }
+    }
+
+    function renderPlayerSelect() {
+        const sel = document.getElementById('playerSelect');
+        sel.innerHTML = players.map((p) => '<option value="' + p.id + '">' + escapeHtml(p.name) + '</option>').join('');
+        if (currentPlayerId) sel.value = currentPlayerId;
+    }
+
+    document.getElementById('playerSelect').addEventListener('change', async (e) => {
+        currentPlayerId = e.target.value;
+        await loadHistory();
+    });
+
+    document.getElementById('addPlayerBtn').addEventListener('click', () => {
+        const wrap = document.getElementById('addPlayerFormWrap');
+        wrap.classList.toggle('hidden');
+        if (!wrap.classList.contains('hidden')) {
+            document.getElementById('newPlayerNameInput').value = '';
+            document.getElementById('newPlayerNameInput').focus();
+        }
+    });
+
+    document.getElementById('confirmAddPlayerBtn').addEventListener('click', async () => {
+        const input = document.getElementById('newPlayerNameInput');
+        const name = input.value.trim();
+        if (!name) return;
+
+        try {
+            const docRef = await addDoc(collection(db, 'players'), { name });
+            document.getElementById('addPlayerFormWrap').classList.add('hidden');
+            await loadPlayers();
+            currentPlayerId = docRef.id;
+            renderPlayerSelect();
+            await loadHistory();
+        } catch (e) {
+            alert('選手を追加できませんでした。\n\nエラー内容：' + e.message);
+        }
+    });
+
+    // ===== 記録の保存 =====
+    document.getElementById('saveRecordBtn').addEventListener('click', async () => {
+        if (!currentPlayerId) { alert('先に選手を選んでください'); return; }
+
+        const date = document.getElementById('recordDate').value;
+        if (!date) { alert('測定日を入力してください'); return; }
+
+        const record = {
+            playerId: currentPlayerId,
+            date,
+            recordedBy: auth.currentUser.email,
+            createdAt: serverTimestamp(),
+        };
+
+        const heightVal = document.getElementById('metricHeight').value;
+        const weightVal = document.getElementById('metricWeight').value;
+        const sprintVal = document.getElementById('metricSprint').value;
+        const baseRunningVal = document.getElementById('metricBaseRunning').value;
+        const throwVal = document.getElementById('metricThrow').value;
+        const strikeVal = document.getElementById('metricStrike').value;
+
+        if (heightVal !== '') record.height = Number(heightVal);
+        if (weightVal !== '') record.weight = Number(weightVal);
+        if (sprintVal !== '') record.sprint = Number(sprintVal);
+        if (baseRunningVal !== '') record.baseRunning = Number(baseRunningVal);
+        if (throwVal !== '') record.throwDistance = Number(throwVal);
+        if (strikeVal !== '') record.strikeRate = Number(strikeVal);
+
+        const hasAnyMetric = METRICS.some((m) => record[m.key] !== undefined);
+        if (!hasAnyMetric) { alert('何か1つ以上、数値を入力してください'); return; }
+
+        try {
+            await addDoc(collection(db, 'growthRecords'), record);
+
+            ['metricHeight', 'metricWeight', 'metricSprint', 'metricBaseRunning', 'metricThrow', 'metricStrike'].forEach((id) => {
+                document.getElementById(id).value = '';
+            });
+
+            const statusEl = document.getElementById('saveStatus');
+            statusEl.textContent = '保存しました！';
+            statusEl.classList.remove('hidden');
+            setTimeout(() => statusEl.classList.add('hidden'), 2500);
+
+            await loadHistory();
+        } catch (e) {
+            alert('記録を保存できませんでした。\n\nエラー内容：' + e.message);
+        }
+    });
+
+    // ===== 履歴・グラフ表示 =====
+    async function loadHistory() {
+        if (!currentPlayerId) return;
+        const q = query(
+            collection(db, 'growthRecords'),
+            where('playerId', '==', currentPlayerId),
+            orderBy('date', 'asc')
+        );
+        const snap = await getDocs(q);
+        currentRecords = snap.docs.map((d) => d.data());
+
+        const player = players.find((p) => p.id === currentPlayerId);
+        document.getElementById('historyTitle').textContent =
+            (player ? player.name : '') + 'さんの記録の推移';
+
+        renderMetricTabs();
+        renderGraphAndTable();
+    }
+
+    function renderMetricTabs() {
+        const el = document.getElementById('metricTabs');
+        el.innerHTML = METRICS.map((m) =>
+            '<button class="metric-tab' + (m.key === currentMetric ? ' active' : '') + '" data-metric="' + m.key + '">' + m.label + '</button>'
+        ).join('');
+        el.querySelectorAll('.metric-tab').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                currentMetric = btn.dataset.metric;
+                renderMetricTabs();
+                renderGraphAndTable();
+            });
+        });
+    }
+
+    function renderGraphAndTable() {
+        const metricInfo = METRICS.find((m) => m.key === currentMetric);
+        const points = currentRecords.filter((r) => r[currentMetric] !== undefined);
+
+        const svg = document.getElementById('graphSvg');
+        const table = document.getElementById('historyTable');
+        const emptyNote = document.getElementById('emptyNote');
+
+        if (points.length === 0) {
+            svg.innerHTML = '';
+            table.innerHTML = '';
+            emptyNote.classList.remove('hidden');
+            return;
+        }
+        emptyNote.classList.add('hidden');
+
+        // ---- グラフ(簡易な折れ線、SVG) ----
+        const values = points.map((p) => p[currentMetric]);
+        const minV = Math.min(...values);
+        const maxV = Math.max(...values);
+        const range = maxV - minV || 1;
+        const padX = 24, padY = 16, w = 300 - padX * 2, h = 140 - padY * 2;
+
+        const coords = points.map((p, i) => {
+            const x = padX + (points.length === 1 ? w / 2 : (i / (points.length - 1)) * w);
+            const y = padY + h - ((p[currentMetric] - minV) / range) * h;
+            return { x, y, date: p.date, value: p[currentMetric] };
+        });
+
+        const pathD = coords.map((c, i) => (i === 0 ? 'M' : 'L') + c.x.toFixed(1) + ',' + c.y.toFixed(1)).join(' ');
+        const dotsHtml = coords.map((c) =>
+            '<circle cx="' + c.x.toFixed(1) + '" cy="' + c.y.toFixed(1) + '" r="3" fill="var(--magnet)"></circle>'
+        ).join('');
+        const labelsHtml = coords.map((c, i) =>
+            (i === 0 || i === coords.length - 1)
+                ? '<text x="' + c.x.toFixed(1) + '" y="132" font-size="8" fill="#6B6154" text-anchor="middle">' + c.date.slice(5) + '</text>'
+                : ''
+        ).join('');
+
+        svg.innerHTML =
+            '<path d="' + pathD + '" fill="none" stroke="#4A90A4" stroke-width="2"></path>' +
+            dotsHtml + labelsHtml;
+
+        // ---- 表 ----
+        table.innerHTML = '<tr><th>日付</th><th>' + metricInfo.label + ' (' + metricInfo.unit + ')</th></tr>' +
+            points.slice().reverse().map((p) =>
+                '<tr><td>' + p.date + '</td><td>' + p[currentMetric] + '</td></tr>'
+            ).join('');
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // 測定日の初期値を今日にしておく
+    document.getElementById('recordDate').value = new Date().toISOString().slice(0, 10);
+</script>
+
+</body>
+</html>
