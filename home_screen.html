@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ライナーズ - ホーム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --paper: #F6F2E9;
+        --paper-dark: #ECE5D4;
+        --wood: #6B4A34;
+        --wood-dark: #4E3626;
+        --grass: #2F4A34;
+        --grass-light: #3E5F45;
+        --magnet: #4A90A4;
+        --magnet-dark: #366B7B;
+        --ink: #2A2420;
+        --ink-soft: #6B6154;
+        --brick: #B5482F;
+        --line: #DCD3BE;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        font-family: 'Noto Sans JP', sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+        padding-bottom: 40px;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .display {
+        font-family: 'Zen Kaku Gothic New', sans-serif;
+        font-weight: 900;
+    }
+
+    .mono {
+        font-family: 'Space Mono', monospace;
+    }
+
+    /* ===== ロール切り替え(デモ用) ===== */
+    .role-switcher {
+        display: flex;
+        gap: 6px;
+        padding: 10px 16px;
+        background: var(--wood-dark);
+        overflow-x: auto;
+    }
+    .role-switcher button {
+        flex-shrink: 0;
+        border: none;
+        background: rgba(255,255,255,0.12);
+        color: rgba(255,255,255,0.6);
+        font-family: 'Noto Sans JP', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 6px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+    .role-switcher button.active {
+        background: var(--magnet);
+        color: white;
+    }
+
+    /* ===== ヘッダー ===== */
+    header {
+        background: var(--wood-dark);
+        color: var(--paper);
+        padding: 22px 20px 26px;
+        position: relative;
+        overflow: hidden;
+        background-size: cover; background-position: center;
+    }
+    header.has-bg-image::before {
+        content: ""; position: absolute; inset: 0;
+        background: linear-gradient(to bottom, rgba(30,20,15,0.35), rgba(30,20,15,0.75));
+    }
+    header > * { position: relative; z-index: 1; }
+    header::after {
+        content: "";
+        position: absolute;
+        right: -30px; top: -30px;
+        width: 140px; height: 140px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(74,144,164,0.25), transparent 70%);
+    }
+    .team-name {
+        font-size: 1.5rem;
+        letter-spacing: 0.02em;
+    }
+    .greeting {
+        margin-top: 4px;
+        font-size: 0.85rem;
+        color: rgba(246,242,233,0.75);
+    }
+    .role-badge {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: var(--magnet);
+        letter-spacing: 0.05em;
+    }
+
+    main {
+        padding: 20px 16px 0;
+        max-width: 480px;
+        margin: 0 auto;
+    }
+
+    section { margin-bottom: 30px; }
+
+    .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 12px;
+    }
+    .section-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--ink);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .section-link {
+        font-size: 0.75rem;
+        color: var(--magnet-dark);
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    /* ===== 次の練習(ホワイトボード風カード) ===== */
+    .board-card {
+        background: var(--paper);
+        border: 3px solid var(--wood);
+        border-radius: 14px;
+        position: relative;
+        padding: 18px 18px 20px;
+        box-shadow: 0 4px 0 rgba(107,74,52,0.15);
+    }
+    .board-card::before, .board-card::after {
+        content: "";
+        position: absolute;
+        width: 20px; height: 20px;
+        background: var(--wood-dark);
+        border-radius: 5px;
+    }
+    .board-card::before { top: -8px; left: -8px; }
+    .board-card::after { bottom: -8px; right: -8px; }
+
+    .board-eyebrow {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--magnet-dark);
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+    }
+    .board-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    .board-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 0.85rem;
+        color: var(--ink-soft);
+        margin-bottom: 16px;
+    }
+    .board-meta span.mono { color: var(--ink); font-weight: 700; }
+
+    .attend-row {
+        display: flex;
+        gap: 10px;
+    }
+    .magnet-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 10px 4px;
+        border-radius: 14px;
+        background: #fff;
+        border: 2px solid var(--line);
+        cursor: pointer;
+        font-family: 'Noto Sans JP', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--ink-soft);
+        transition: transform 0.12s, border-color 0.12s, background 0.12s, color 0.12s;
+    }
+    .magnet-btn .dot {
+        width: 26px; height: 26px;
+        border-radius: 50%;
+        background: var(--line);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 0.85rem; font-weight: 900;
+    }
+    .magnet-btn.selected {
+        border-color: var(--magnet);
+        background: #EAF3F5;
+        color: var(--magnet-dark);
+        transform: translateY(-2px);
+    }
+    .magnet-btn.selected .dot { background: var(--magnet); }
+    .magnet-btn:active { transform: scale(0.96); }
+
+    .attend-status {
+        margin-top: 10px;
+        font-size: 0.72rem;
+        color: var(--ink-soft);
+        text-align: center;
+    }
+
+    /* コーチ向け: 出欠状況サマリー */
+    .roster-summary {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px dashed var(--line);
+        display: flex;
+        justify-content: space-around;
+        font-size: 0.78rem;
+    }
+    .roster-summary div { text-align: center; }
+    .roster-summary .num { font-size: 1.2rem; font-weight: 700; }
+    .roster-summary .attending .num { color: var(--grass); }
+    .roster-summary .undecided .num { color: #B08B2A; }
+    .roster-summary .absent .num { color: var(--brick); }
+
+    /* ===== お知らせ(ラベル風カード) ===== */
+    .label-card {
+        background: white;
+        border-radius: 4px;
+        padding: 12px 14px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 2px rgba(42,36,32,0.08);
+        border-left: 4px solid var(--line);
+        position: relative;
+        cursor: pointer;
+    }
+    .label-card.important { border-left-color: var(--brick); }
+    .label-card.unread::after {
+        content: "";
+        position: absolute;
+        top: 12px; right: 12px;
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: var(--brick);
+    }
+    .label-tag {
+        display: inline-block;
+        font-size: 0.62rem;
+        font-weight: 700;
+        color: var(--brick);
+        margin-bottom: 3px;
+        letter-spacing: 0.03em;
+    }
+    .label-title {
+        font-size: 0.88rem;
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+    .label-meta {
+        font-size: 0.68rem;
+        color: var(--ink-soft);
+    }
+
+    /* ===== クイックナビ ===== */
+    .nav-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    .nav-card {
+        background: var(--grass);
+        color: var(--paper);
+        border-radius: 12px;
+        padding: 16px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        text-decoration: none;
+        min-height: 74px;
+        justify-content: flex-end;
+    }
+    .nav-card .icon { font-size: 1.3rem; }
+    .nav-card .label { font-size: 0.82rem; font-weight: 700; }
+    .nav-card.alt { background: var(--magnet); }
+    .nav-card.coach { background: var(--wood); }
+
+    /* コーチ専用の操作行 */
+    .coach-actions {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+    .coach-actions button {
+        flex: 1;
+        border: none;
+        background: var(--ink);
+        color: var(--paper);
+        font-family: 'Noto Sans JP', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 11px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .coach-actions button.ghost {
+        background: transparent;
+        border: 1.5px solid var(--ink);
+        color: var(--ink);
+    }
+
+    /* ===== お手本動画 ===== */
+    .video-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
+    .video-tab {
+        flex-shrink: 0; border: 1.5px solid var(--line); background: white; color: var(--ink-soft);
+        font-family: 'Noto Sans JP', sans-serif; font-size: 0.75rem; font-weight: 700;
+        padding: 7px 14px; border-radius: 999px; cursor: pointer;
+    }
+    .video-tab.active { background: var(--magnet); border-color: var(--magnet); color: white; }
+
+    .video-card {
+        background: white; border-radius: 12px; overflow: hidden; margin-bottom: 14px;
+        box-shadow: 0 1px 3px rgba(42,36,32,0.1);
+    }
+    .video-frame-wrap { position: relative; width: 100%; padding-top: 56.25%; background: var(--wood-dark); }
+    .video-frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+    .video-placeholder {
+        position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 6px; color: rgba(246,242,233,0.65); background: repeating-linear-gradient(135deg, var(--wood-dark), var(--wood-dark) 10px, #453023 10px, #453023 20px);
+    }
+    .video-placeholder .icon { font-size: 1.8rem; }
+    .video-placeholder .txt { font-size: 0.78rem; font-weight: 700; }
+    .video-info { padding: 12px 14px; }
+    .video-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 3px; }
+    .video-desc { font-size: 0.72rem; color: var(--ink-soft); line-height: 1.5; }
+
+    .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+    <div class="role-switcher">
+        <button data-role="player" class="active">選手として見る</button>
+        <button data-role="coach">指導者として見る</button>
+        <button data-role="admin">管理者として見る</button>
+    </div>
+
+    <header id="mainHeader">
+        <div class="team-name display">ライナーズ</div>
+        <div class="greeting" id="greeting">こんにちは、田中 太郎さん</div>
+        <span class="role-badge" id="roleBadge">選手</span>
+    </header>
+
+    <main>
+
+        <!-- コーチ・管理者だけに見える操作 -->
+        <div class="coach-actions role-coach role-admin hidden">
+            <button id="postAnnouncementBtn">📌 お知らせを投稿</button>
+            <button class="ghost" id="createPracticeBtn">＋ 練習を追加</button>
+        </div>
+
+        <section>
+            <div class="section-head">
+                <div class="section-title">🗓️ 次の練習</div>
+                <a class="section-link" href="#">予定を見る →</a>
+            </div>
+
+            <div class="board-card">
+                <div class="board-eyebrow">次回の練習まで あと5日</div>
+                <div class="board-title">土曜練習</div>
+                <div class="board-meta">
+                    <div>📍 第一グラウンド</div>
+                    <div>🕒 <span class="mono">8/29(土) 9:00〜12:00</span></div>
+                </div>
+
+                <div class="attend-row" id="attendRow">
+                    <button class="magnet-btn" data-status="attending">
+                        <span class="dot">○</span>出席
+                    </button>
+                    <button class="magnet-btn" data-status="undecided">
+                        <span class="dot">△</span>未定
+                    </button>
+                    <button class="magnet-btn" data-status="absent">
+                        <span class="dot">✕</span>欠席
+                    </button>
+                </div>
+                <div class="attend-status" id="attendStatusText">まだ出欠を入力していません</div>
+
+                <div class="roster-summary role-coach role-admin hidden">
+                    <div class="attending"><div class="num">14</div>出席</div>
+                    <div class="undecided"><div class="num">3</div>未定</div>
+                    <div class="absent"><div class="num">2</div>欠席</div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="section-head">
+                <div class="section-title">📋 お知らせ</div>
+                <a class="section-link" href="#">すべて見る →</a>
+            </div>
+
+            <div class="label-card important unread">
+                <div class="label-tag">📌 重要</div>
+                <div class="label-title">来月の大会日程について</div>
+                <div class="label-meta">コーチ・鈴木 ・ 2時間前</div>
+            </div>
+
+            <div class="label-card">
+                <div class="label-title">土曜練習は予定通り実施します</div>
+                <div class="label-meta">コーチ・鈴木 ・ 昨日</div>
+            </div>
+
+            <div class="label-card">
+                <div class="label-title">ユニフォームのクリーニングについて</div>
+                <div class="label-meta">監督・佐藤 ・ 3日前</div>
+            </div>
+        </section>
+
+        <section>
+            <div class="section-head">
+                <div class="section-title">🎥 お手本動画</div>
+                <a class="section-link" href="#" id="videoCoachToggleLink">🔑 コーチ用</a>
+            </div>
+
+            <div id="videoLoginArea" class="hidden" style="margin-bottom:12px;">
+                <div class="label-card" style="padding:10px 14px;">
+                    <div style="font-size:0.72rem; color:var(--ink-soft); margin-bottom:6px;" id="videoAuthStatus"></div>
+                    <div id="videoLoginForm">
+                        <div style="display:flex; gap:6px; margin-bottom:6px;">
+                            <input id="videoLoginEmail" type="email" placeholder="メールアドレス" style="flex:1; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem;">
+                            <input id="videoLoginPassword" type="password" placeholder="パスワード" style="flex:1; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem;">
+                        </div>
+                        <button id="videoLoginBtn" style="width:100%; border:none; background:var(--magnet); color:white; font-weight:700; padding:8px; border-radius:6px; font-size:0.75rem; cursor:pointer;">コーチ・監督としてログイン</button>
+                    </div>
+                    <div id="videoAddForm" class="hidden">
+                        <div style="font-size:0.7rem; font-weight:700; color:var(--ink-soft); margin-bottom:4px;">🖼️ ホーム画面の背景写真</div>
+                        <div style="display:flex; gap:6px; margin-bottom:8px;">
+                            <input id="newBackgroundUrl" type="text" placeholder="写真のURL（Googleフォト等の共有リンク）" style="flex:1; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.72rem;">
+                            <button id="setBackgroundBtn" style="border:none; background:var(--wood); color:white; font-weight:700; padding:0 10px; border-radius:6px; font-size:0.72rem; cursor:pointer; white-space:nowrap;">設定</button>
+                        </div>
+                        <hr style="border:none; border-top:1px dashed var(--line); margin-bottom:8px;">
+                        <div style="font-size:0.7rem; font-weight:700; color:var(--ink-soft); margin-bottom:4px;">🎥 お手本動画を追加</div>
+                        <input id="newVideoCategory" type="text" placeholder="カテゴリ（例：打撃）" style="width:100%; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem; margin-bottom:6px;">
+                        <input id="newVideoTitle" type="text" placeholder="タイトル（例：基本のバッティングフォーム）" style="width:100%; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem; margin-bottom:6px;">
+                        <input id="newVideoDesc" type="text" placeholder="説明（任意）" style="width:100%; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem; margin-bottom:6px;">
+                        <input id="newVideoYoutubeId" type="text" placeholder="YouTube動画ID（例：dQw4w9WgXcQ）" style="width:100%; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem; margin-bottom:6px;">
+                        <button id="addVideoBtn" style="width:100%; border:none; background:var(--grass); color:white; font-weight:700; padding:8px; border-radius:6px; font-size:0.75rem; cursor:pointer;">この動画を追加する</button>
+                        <button id="videoLogoutBtn" style="width:100%; border:none; background:none; color:var(--ink-soft); font-size:0.7rem; padding:6px; cursor:pointer; text-decoration:underline;">ログアウト</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="video-tabs" id="videoTabs"></div>
+            <div id="videoList"></div>
+        </section>
+
+        <section>
+            <div class="section-head">
+                <div class="section-title">よく使う機能</div>
+            </div>
+            <div class="nav-grid">
+                <a class="nav-card" href="#">
+                    <span class="icon">✅</span>
+                    <span class="label">出欠管理</span>
+                </a>
+                <a class="nav-card alt" href="score_app.html">
+                    <span class="icon">⚾</span>
+                    <span class="label">スコア記録</span>
+                </a>
+                <a class="nav-card" href="quiz.html" style="background:var(--wood);">
+                    <span class="icon">🧠</span>
+                    <span class="label">野球IQクイズ</span>
+                </a>
+                <a class="nav-card" href="growth.html" style="background:var(--magnet);">
+                    <span class="icon">📈</span>
+                    <span class="label">成長記録</span>
+                </a>
+                <a class="nav-card coach role-coach role-admin hidden" href="#">
+                    <span class="icon">👥</span>
+                    <span class="label">選手名簿</span>
+                </a>
+                <a class="nav-card role-admin hidden" href="#" style="background:var(--brick);">
+                    <span class="icon">🔑</span>
+                    <span class="label">権限管理</span>
+                </a>
+                <a class="nav-card" href="#">
+                    <span class="icon">📖</span>
+                    <span class="label">練習記録</span>
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+<script>
+    // ===== ロール切り替え(デモ用。実際はAuthServiceのログイン情報から決まる) =====
+    const roleData = {
+        player: { name: '田中 太郎', badge: '選手' },
+        coach: { name: '鈴木 コーチ', badge: '指導者' },
+        admin: { name: '佐藤 監督', badge: '管理者' },
+    };
+
+    function setRole(role) {
+        document.getElementById('greeting').textContent = 'こんにちは、' + roleData[role].name + 'さん';
+        document.getElementById('roleBadge').textContent = roleData[role].badge;
+
+        document.querySelectorAll('.role-switcher button').forEach(b => {
+            b.classList.toggle('active', b.dataset.role === role);
+        });
+
+        document.querySelectorAll('.role-coach, .role-admin').forEach(el => {
+            const needsCoach = el.classList.contains('role-coach');
+            const needsAdmin = el.classList.contains('role-admin');
+
+            let visible = false;
+            if (needsCoach && needsAdmin) {
+                visible = (role === 'coach' || role === 'admin');
+            } else if (needsCoach) {
+                visible = (role === 'coach' || role === 'admin');
+            } else if (needsAdmin) {
+                visible = (role === 'admin');
+            }
+
+            el.classList.toggle('hidden', !visible);
+        });
+    }
+
+    document.querySelectorAll('.role-switcher button').forEach(btn => {
+        btn.addEventListener('click', () => setRole(btn.dataset.role));
+    });
+
+    // ===== 出欠ボタン =====
+    const statusLabel = { attending: '「出席」で回答しました', undecided: '「未定」で回答しました', absent: '「欠席」で回答しました' };
+
+    document.querySelectorAll('.magnet-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.magnet-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            document.getElementById('attendStatusText').textContent = statusLabel[btn.dataset.status];
+        });
+    });
+
+    // 初期状態(選手ロール)
+    setRole('player');
+
+</script>
+
+<script type="module">
+    // ===============================================
+    // ===== お手本動画(Firebase Firestoreと連携) =====
+    // 動画は誰でも閲覧できます。追加は、ログインしたコーチ・監督だけができます。
+    // ===============================================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import {
+        getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import {
+        getFirestore, collection, addDoc, getDocs, orderBy, query, doc, setDoc, getDoc,
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAnZ_Iif_iHbE-jmrc-XcCS0tLeUADPhqo",
+        authDomain: "liners-db85c.firebaseapp.com",
+        projectId: "liners-db85c",
+        storageBucket: "liners-db85c.firebasestorage.app",
+        messagingSenderId: "229305968070",
+        appId: "1:229305968070:web:bbca2e6fa562e6ff9b3ec7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let videoData = [];
+    let currentVideoCategory = 'すべて';
+
+    function escapeHtmlForVideo(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // ===== 動画一覧の読み込み(誰でも見られる) =====
+    async function loadVideos() {
+        try {
+            const q = query(collection(db, 'videos'), orderBy('createdAt', 'desc'));
+            const snap = await getDocs(q);
+            videoData = snap.docs.map((d) => d.data());
+        } catch (e) {
+            document.getElementById('videoList').innerHTML =
+                '<div class="video-card"><div class="video-info"><div class="video-desc">動画を読み込めませんでした。時間をおいて再度お試しください。</div></div></div>';
+            return;
+        }
+        renderVideoTabs();
+        renderVideoList();
+    }
+
+    function renderVideoTabs() {
+        const categories = ['すべて', ...new Set(videoData.map((v) => v.category))];
+        const tabsEl = document.getElementById('videoTabs');
+        tabsEl.innerHTML = categories.map((cat) =>
+            '<button class="video-tab' + (cat === currentVideoCategory ? ' active' : '') + '" data-cat="' + escapeHtmlForVideo(cat) + '">' + escapeHtmlForVideo(cat) + '</button>'
+        ).join('');
+        tabsEl.querySelectorAll('.video-tab').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                currentVideoCategory = btn.dataset.cat;
+                renderVideoTabs();
+                renderVideoList();
+            });
+        });
+    }
+
+    function renderVideoList() {
+        const listEl = document.getElementById('videoList');
+        const filtered = currentVideoCategory === 'すべて'
+            ? videoData
+            : videoData.filter((v) => v.category === currentVideoCategory);
+
+        if (filtered.length === 0) {
+            listEl.innerHTML = '<div class="video-card"><div class="video-info"><div class="video-desc">まだ動画がありません。コーチが追加するのをお待ちください。</div></div></div>';
+            return;
+        }
+
+        listEl.innerHTML = filtered.map((v) => {
+            const frameHtml = v.youtubeId
+                ? '<iframe src="https://www.youtube.com/embed/' + escapeHtmlForVideo(v.youtubeId) + '" title="' + escapeHtmlForVideo(v.title) + '" allowfullscreen></iframe>'
+                : '<div class="video-placeholder"><span class="icon">🎬</span><span class="txt">動画準備中です</span></div>';
+
+            return '<div class="video-card">' +
+                '<div class="video-frame-wrap">' + frameHtml + '</div>' +
+                '<div class="video-info">' +
+                    '<div class="video-title">【' + escapeHtmlForVideo(v.category) + '】' + escapeHtmlForVideo(v.title) + '</div>' +
+                    '<div class="video-desc">' + escapeHtmlForVideo(v.desc || '') + '</div>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    }
+
+    // ===== コーチ用: ログイン・動画追加 =====
+    document.getElementById('videoCoachToggleLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('videoLoginArea').classList.toggle('hidden');
+    });
+
+    document.getElementById('videoLoginBtn').addEventListener('click', async () => {
+        const email = document.getElementById('videoLoginEmail').value.trim();
+        const password = document.getElementById('videoLoginPassword').value;
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (e) {
+            alert('ログインできませんでした。メールアドレスとパスワードをご確認ください。');
+        }
+    });
+
+    document.getElementById('videoLogoutBtn').addEventListener('click', () => signOut(auth));
+
+    onAuthStateChanged(auth, (user) => {
+        const loginForm = document.getElementById('videoLoginForm');
+        const addForm = document.getElementById('videoAddForm');
+        const statusEl = document.getElementById('videoAuthStatus');
+
+        if (user) {
+            loginForm.classList.add('hidden');
+            addForm.classList.remove('hidden');
+            statusEl.textContent = 'ログイン中：' + user.email;
+        } else {
+            loginForm.classList.remove('hidden');
+            addForm.classList.add('hidden');
+            statusEl.textContent = '動画を追加するには、コーチ・監督としてログインしてください。';
+        }
+    });
+
+    document.getElementById('addVideoBtn').addEventListener('click', async () => {
+        const category = document.getElementById('newVideoCategory').value.trim();
+        const title = document.getElementById('newVideoTitle').value.trim();
+        const desc = document.getElementById('newVideoDesc').value.trim();
+        const youtubeId = document.getElementById('newVideoYoutubeId').value.trim();
+
+        if (!category || !title || !youtubeId) {
+            alert('カテゴリ・タイトル・YouTube動画IDは必須です');
+            return;
+        }
+
+        try {
+            await addDoc(collection(db, 'videos'), {
+                category, title, desc: desc || null, youtubeId,
+                addedBy: auth.currentUser.email,
+                createdAt: new Date().toISOString(),
+            });
+            ['newVideoCategory', 'newVideoTitle', 'newVideoDesc', 'newVideoYoutubeId'].forEach((id) => {
+                document.getElementById(id).value = '';
+            });
+            alert('動画を追加しました！');
+            await loadVideos();
+        } catch (e) {
+            alert('動画を追加できませんでした。\n\nエラー内容：' + e.message);
+        }
+    });
+
+    // ===== ホーム画面の背景写真(設定はコーチのみ、閲覧は誰でも) =====
+    async function loadBackground() {
+        try {
+            const snap = await getDoc(doc(db, 'settings', 'homeBackground'));
+            if (snap.exists() && snap.data().imageUrl) {
+                const header = document.getElementById('mainHeader');
+                header.style.backgroundImage = 'url(' + snap.data().imageUrl + ')';
+                header.classList.add('has-bg-image');
+            }
+        } catch (e) {
+            // 背景写真が読み込めなくても、他の機能には影響させない
+        }
+    }
+
+    document.getElementById('setBackgroundBtn')?.addEventListener('click', async () => {
+        const url = document.getElementById('newBackgroundUrl').value.trim();
+        if (!url) { alert('写真のURLを入力してください'); return; }
+
+        try {
+            await setDoc(doc(db, 'settings', 'homeBackground'), {
+                imageUrl: url,
+                updatedBy: auth.currentUser.email,
+            });
+            alert('背景写真を設定しました！');
+            await loadBackground();
+        } catch (e) {
+            alert('背景写真を設定できませんでした。\n\nエラー内容：' + e.message);
+        }
+    });
+
+    loadBackground();
+    loadVideos();
+</script>
+
+
+</body>
+</html>

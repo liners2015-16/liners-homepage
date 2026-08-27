@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>野球IQクイズ - ライナーズ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --paper: #F6F2E9;
+        --paper-dark: #ECE5D4;
+        --wood: #6B4A34;
+        --wood-dark: #4E3626;
+        --grass: #2F4A34;
+        --grass-light: #3E5F45;
+        --magnet: #4A90A4;
+        --magnet-dark: #366B7B;
+        --ink: #2A2420;
+        --ink-soft: #6B6154;
+        --brick: #B5482F;
+        --line: #DCD3BE;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        font-family: 'Noto Sans JP', sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+        padding-bottom: 40px;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .display { font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 900; }
+    .mono { font-family: 'Space Mono', monospace; }
+
+    header {
+        background: var(--wood-dark); color: var(--paper); padding: 16px 18px;
+        display: flex; align-items: center; gap: 10px;
+    }
+    header a { color: var(--paper); text-decoration: none; font-size: 1.1rem; }
+    header .title { font-size: 1.05rem; font-weight: 900; }
+
+    main { max-width: 480px; margin: 0 auto; padding: 16px; }
+
+    .progress-banner {
+        background: white; border: 1.5px solid var(--line); border-radius: 12px;
+        padding: 14px 16px; margin-bottom: 16px;
+    }
+    .progress-banner .headline { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
+    .progress-bar-track { background: var(--paper-dark); border-radius: 999px; height: 8px; overflow: hidden; margin-bottom: 8px; }
+    .progress-bar-fill { background: var(--grass); height: 100%; border-radius: 999px; transition: width 0.3s; }
+    .progress-detail { font-size: 0.72rem; color: var(--ink-soft); }
+
+    .mode-buttons { display: flex; gap: 8px; margin-top: 10px; }
+    .mode-btn {
+        flex: 1; border: 1.5px solid var(--magnet); background: white; color: var(--magnet-dark);
+        font-family: 'Noto Sans JP', sans-serif; font-weight: 700; font-size: 0.78rem;
+        padding: 9px; border-radius: 8px; cursor: pointer;
+    }
+    .mode-btn.primary { background: var(--magnet); color: white; }
+    .mode-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .category-filter { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; }
+    .category-chip {
+        flex-shrink: 0; border: 1.5px solid var(--line); background: white; color: var(--ink-soft);
+        font-family: 'Noto Sans JP', sans-serif; font-size: 0.72rem; font-weight: 700;
+        padding: 6px 12px; border-radius: 999px; cursor: pointer;
+    }
+    .category-chip.active { background: var(--wood); border-color: var(--wood); color: white; }
+
+    .question-card {
+        background: white; border-radius: 14px; padding: 18px 16px;
+        box-shadow: 0 2px 6px rgba(42,36,32,0.1);
+    }
+    .question-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .question-category-tag {
+        display: inline-block; background: var(--paper-dark); color: var(--ink-soft);
+        font-size: 0.65rem; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+    }
+    .question-counter { font-size: 0.7rem; color: var(--ink-soft); font-family: 'Space Mono', monospace; }
+    .question-type-note { font-size: 0.68rem; color: var(--brick); font-weight: 700; margin-bottom: 6px; }
+    .question-text { font-size: 0.95rem; font-weight: 700; line-height: 1.6; margin-bottom: 16px; }
+
+    .choice-btn {
+        display: block; width: 100%; text-align: left; border: 1.5px solid var(--line); background: white;
+        border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; font-size: 0.85rem;
+        font-family: 'Noto Sans JP', sans-serif; color: var(--ink); cursor: pointer; line-height: 1.5;
+    }
+    .choice-btn .choice-mark {
+        display: inline-block; width: 20px; height: 20px; border: 1.5px solid var(--line);
+        margin-right: 8px; vertical-align: middle; text-align: center; line-height: 18px; font-size: 0.7rem;
+        color: transparent;
+    }
+    .choice-btn.multi .choice-mark { border-radius: 4px; }
+    .choice-btn.single .choice-mark { border-radius: 50%; }
+    .choice-btn.selected { border-color: var(--magnet); background: #EAF3F5; }
+    .choice-btn.selected .choice-mark { background: var(--magnet); border-color: var(--magnet); color: white; }
+
+    .choice-btn.correct { border-color: var(--grass); background: #EAF1EC; }
+    .choice-btn.correct .choice-mark { background: var(--grass); border-color: var(--grass); color: white; }
+    .choice-btn.incorrect { border-color: var(--brick); background: #FBF0ED; }
+    .choice-btn.incorrect .choice-mark { background: var(--brick); border-color: var(--brick); color: white; }
+    .choice-btn.disabled { cursor: default; }
+
+    .submit-btn {
+        width: 100%; border: none; background: var(--wood); color: white; font-weight: 700;
+        font-size: 0.88rem; padding: 13px; border-radius: 10px; margin-top: 6px; cursor: pointer;
+    }
+    .submit-btn:disabled { background: var(--line); color: var(--ink-soft); cursor: not-allowed; }
+
+    .result-banner {
+        margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 0.82rem; font-weight: 700;
+    }
+    .result-banner.correct-result { background: #EAF1EC; color: var(--grass); }
+    .result-banner.incorrect-result { background: #FBF0ED; color: var(--brick); }
+    .explanation { margin-top: 8px; font-size: 0.78rem; color: var(--ink-soft); line-height: 1.6; font-weight: 400; }
+
+    .next-btn {
+        width: 100%; border: none; background: var(--grass); color: white; font-weight: 700;
+        font-size: 0.88rem; padding: 13px; border-radius: 10px; margin-top: 12px; cursor: pointer;
+    }
+
+    .empty-state, .session-complete {
+        background: white; border-radius: 14px; padding: 32px 20px; text-align: center;
+    }
+    .empty-state .icon, .session-complete .icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .empty-state .txt { font-size: 0.85rem; color: var(--ink-soft); line-height: 1.7; }
+    .session-complete .score { font-size: 1.8rem; font-weight: 900; font-family: 'Space Mono', monospace; color: var(--wood); margin: 8px 0; }
+
+    .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+    <a href="index.html">←</a>
+    <div class="title">🧠 野球IQクイズ</div>
+</header>
+
+<main>
+    <div class="progress-banner">
+        <div class="headline" id="progressHeadline"></div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressBarFill"></div></div>
+        <div class="progress-detail" id="progressDetail"></div>
+        <div class="mode-buttons">
+            <button class="mode-btn primary" id="startUnansweredBtn">未挑戦の問題から始める</button>
+            <button class="mode-btn" id="startAllBtn">最初から全部やる</button>
+        </div>
+    </div>
+
+    <div class="category-filter" id="categoryFilter"></div>
+
+    <div id="quizArea"></div>
+</main>
+
+<script>
+    // ===============================================
+    // 問題データ
+    // 問題を追加・編集する時は、この配列に追記してください。
+    //
+    // type: 'single'(単一選択、正解は1つ) または 'multi'(複数選択、正解が複数の場合も)
+    // choices: 各選択肢に correct: true/false を付ける
+    // explanation: 正解発表時に表示される解説文
+    // ===============================================
+    const quizData = [
+        {
+            id: 'q001',
+            category: 'ルール基本',
+            type: 'single',
+            question: '無死一塁。打者がショートゴロを打った。ショートは二塁に送球し、二塁手はベースを踏んでアウトにした。このアウトの種類は？',
+            choices: [
+                { text: 'タッチアウト', correct: false },
+                { text: 'フォースアウト', correct: true },
+                { text: 'アピールアウト', correct: false },
+            ],
+            explanation: '一塁走者は二塁に進まなければならない状況(フォースの状態)なので、二塁手はタッチせずベースを踏むだけでアウトになります。',
+        },
+        {
+            id: 'q002',
+            category: 'ルール基本',
+            type: 'single',
+            question: '無死、一・二塁。打者がショートフライを打ち上げた。ショートが「捕れる」と分かっていたのに、わざと落とした。この時、審判は何を宣告する？',
+            choices: [
+                { text: 'インフィールドフライ(打者アウト)', correct: true },
+                { text: 'そのままプレー続行(フェア・ファウルの判定のみ)', correct: false },
+                { text: '打者はアウトにならず、走者だけがアウトになる', correct: false },
+            ],
+            explanation: '無死または一死で、一・二塁または満塁の時に内野フライが上がると、わざと落として併殺を狙われないよう、捕球しなくても自動的に打者アウトになります。',
+        },
+        {
+            id: 'q003',
+            category: 'ルール基本',
+            type: 'single',
+            question: '2アウト、三塁走者あり。打者がレフトフライを打ち、三塁走者がタッチアップして生還した。この時の記録は？',
+            choices: [
+                { text: '犠牲フライ、得点も入る', correct: false },
+                { text: 'ただのフライアウト、得点は入らない', correct: true },
+                { text: '犠牲フライだが、得点は入らない', correct: false },
+            ],
+            explanation: '2アウトからの犠牲フライは、捕球された瞬間に3アウト目が成立してしまうため、絶対に得点にはなりません。',
+        },
+        {
+            id: 'q004',
+            category: 'ボールデッド',
+            type: 'multi',
+            question: '次のうち、「ボールデッド(プレーが止まる)」になるものを全て選んでください。',
+            choices: [
+                { text: '死球(デッドボール)', correct: true },
+                { text: 'ファウルボール(空振り以外)', correct: true },
+                { text: 'ワイルドピッチ(暴投)', correct: false },
+                { text: '打球がフェンスを越えるホームラン', correct: true },
+            ],
+            explanation: '死球・ファウル・場外本塁打は、その瞬間にボールデッドとなりプレーが止まります。ワイルドピッチはボールインプレーのままなので、走者は自分の判断で進塁できます。',
+        },
+    ];
+
+    const STORAGE_KEY = 'baseballQuizAnsweredIds';
+
+    function getAnsweredIds() {
+        try {
+            return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+        } catch (e) {
+            return new Set();
+        }
+    }
+
+    function markAnswered(id) {
+        const ids = getAnsweredIds();
+        ids.add(id);
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+        } catch (e) { /* localStorageが使えない環境では進捗保存をあきらめる */ }
+    }
+
+    const categories = ['すべて', ...new Set(quizData.map(q => q.category))];
+    let currentCategory = 'すべて';
+    let sessionQueue = [];
+    let sessionIndex = 0;
+    let sessionCorrectCount = 0;
+    let currentSelection = new Set();
+    let currentAnswered = false;
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function filteredQuestions() {
+        return currentCategory === 'すべて' ? quizData : quizData.filter(q => q.category === currentCategory);
+    }
+
+    function renderProgressBanner() {
+        const pool = filteredQuestions();
+        const answeredIds = getAnsweredIds();
+        const answeredCount = pool.filter(q => answeredIds.has(q.id)).length;
+        const total = pool.length;
+        const pct = total > 0 ? Math.round((answeredCount / total) * 100) : 0;
+
+        document.getElementById('progressHeadline').textContent =
+            currentCategory === 'すべて' ? '全体の進捗' : '「' + currentCategory + '」の進捗';
+        document.getElementById('progressBarFill').style.width = pct + '%';
+        document.getElementById('progressDetail').textContent =
+            total + '問中 ' + answeredCount + '問に挑戦済み（未挑戦 ' + (total - answeredCount) + '問）';
+
+        document.getElementById('startUnansweredBtn').disabled = (total - answeredCount) === 0;
+    }
+
+    function renderCategoryFilter() {
+        const el = document.getElementById('categoryFilter');
+        el.innerHTML = categories.map(cat =>
+            '<button class="category-chip' + (cat === currentCategory ? ' active' : '') + '" data-cat="' + escapeHtml(cat) + '">' + escapeHtml(cat) + '</button>'
+        ).join('');
+        el.querySelectorAll('.category-chip').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentCategory = btn.dataset.cat;
+                renderCategoryFilter();
+                renderProgressBanner();
+                showEmptyOrStart();
+            });
+        });
+    }
+
+    function showEmptyOrStart() {
+        const area = document.getElementById('quizArea');
+        area.innerHTML = '<div class="empty-state"><div class="icon">👆</div><div class="txt">上のボタンから、問題を始めましょう。</div></div>';
+    }
+
+    function startSession(onlyUnanswered) {
+        const pool = filteredQuestions();
+        const answeredIds = getAnsweredIds();
+        sessionQueue = onlyUnanswered ? pool.filter(q => !answeredIds.has(q.id)) : pool.slice();
+
+        if (sessionQueue.length === 0) {
+            document.getElementById('quizArea').innerHTML =
+                '<div class="empty-state"><div class="icon">🎉</div><div class="txt">この範囲の問題は、もう全部挑戦済みです！<br>「最初から全部やる」で復習もできます。</div></div>';
+            return;
+        }
+
+        sessionIndex = 0;
+        sessionCorrectCount = 0;
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const q = sessionQueue[sessionIndex];
+        currentSelection = new Set();
+        currentAnswered = false;
+
+        const isMulti = q.type === 'multi';
+        const typeNote = isMulti ? '（あてはまるものを全て選んでください）' : '（正解を1つ選んでください）';
+
+        const choicesHtml = q.choices.map((c, i) =>
+            '<button class="choice-btn ' + (isMulti ? 'multi' : 'single') + '" data-choice-idx="' + i + '">' +
+                '<span class="choice-mark">✓</span>' + escapeHtml(c.text) +
+            '</button>'
+        ).join('');
+
+        document.getElementById('quizArea').innerHTML =
+            '<div class="question-card">' +
+                '<div class="question-meta">' +
+                    '<span class="question-category-tag">' + escapeHtml(q.category) + '</span>' +
+                    '<span class="question-counter">' + (sessionIndex + 1) + ' / ' + sessionQueue.length + '</span>' +
+                '</div>' +
+                '<div class="question-type-note">' + typeNote + '</div>' +
+                '<div class="question-text">' + escapeHtml(q.question) + '</div>' +
+                '<div id="choicesWrap">' + choicesHtml + '</div>' +
+                '<button class="submit-btn" id="submitAnswerBtn" disabled>回答する</button>' +
+                '<div id="answerResultArea"></div>' +
+            '</div>';
+
+        document.querySelectorAll('.choice-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (currentAnswered) return;
+                const idx = Number(btn.dataset.choiceIdx);
+
+                if (isMulti) {
+                    if (currentSelection.has(idx)) currentSelection.delete(idx);
+                    else currentSelection.add(idx);
+                } else {
+                    currentSelection = new Set([idx]);
+                }
+                updateChoiceStyles(isMulti);
+            });
+        });
+
+        document.getElementById('submitAnswerBtn').addEventListener('click', submitAnswer);
+    }
+
+    function updateChoiceStyles(isMulti) {
+        document.querySelectorAll('.choice-btn').forEach(btn => {
+            const idx = Number(btn.dataset.choiceIdx);
+            btn.classList.toggle('selected', currentSelection.has(idx));
+        });
+        document.getElementById('submitAnswerBtn').disabled = currentSelection.size === 0;
+    }
+
+    function submitAnswer() {
+        const q = sessionQueue[sessionIndex];
+        currentAnswered = true;
+        markAnswered(q.id);
+
+        const correctIdxSet = new Set(q.choices.map((c, i) => c.correct ? i : null).filter(i => i !== null));
+        const isCorrect = correctIdxSet.size === currentSelection.size &&
+            [...correctIdxSet].every(i => currentSelection.has(i));
+
+        if (isCorrect) sessionCorrectCount++;
+
+        document.querySelectorAll('.choice-btn').forEach(btn => {
+            const idx = Number(btn.dataset.choiceIdx);
+            btn.classList.add('disabled');
+            if (correctIdxSet.has(idx)) btn.classList.add('correct');
+            else if (currentSelection.has(idx)) btn.classList.add('incorrect');
+        });
+
+        document.getElementById('submitAnswerBtn').classList.add('hidden');
+
+        document.getElementById('answerResultArea').innerHTML =
+            '<div class="result-banner ' + (isCorrect ? 'correct-result' : 'incorrect-result') + '">' +
+                (isCorrect ? '⭕ 正解です！' : '❌ 不正解です') +
+                '<div class="explanation">' + escapeHtml(q.explanation) + '</div>' +
+            '</div>' +
+            '<button class="next-btn" id="nextQuestionBtn">' +
+                (sessionIndex < sessionQueue.length - 1 ? '次の問題へ' : '結果を見る') +
+            '</button>';
+
+        document.getElementById('nextQuestionBtn').addEventListener('click', () => {
+            sessionIndex++;
+            if (sessionIndex < sessionQueue.length) {
+                renderQuestion();
+            } else {
+                showSessionComplete();
+            }
+            renderProgressBanner();
+        });
+    }
+
+    function showSessionComplete() {
+        document.getElementById('quizArea').innerHTML =
+            '<div class="session-complete">' +
+                '<div class="icon">🏆</div>' +
+                '<div>お疲れさまでした！</div>' +
+                '<div class="score">' + sessionCorrectCount + ' / ' + sessionQueue.length + ' 問正解</div>' +
+                '<button class="mode-btn primary" id="backToMenuBtn" style="margin-top:12px;">メニューに戻る</button>' +
+            '</div>';
+        document.getElementById('backToMenuBtn').addEventListener('click', showEmptyOrStart);
+    }
+
+    document.getElementById('startUnansweredBtn').addEventListener('click', () => startSession(true));
+    document.getElementById('startAllBtn').addEventListener('click', () => startSession(false));
+
+    renderCategoryFilter();
+    renderProgressBanner();
+    showEmptyOrStart();
+</script>
+
+</body>
+</html>
