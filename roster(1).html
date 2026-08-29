@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>選手名簿 - ライナーズ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --paper: #F6F2E9; --paper-dark: #ECE5D4;
+        --wood: #6B4A34; --wood-dark: #4E3626;
+        --grass: #2F4A34; --magnet: #4A90A4; --magnet-dark: #366B7B;
+        --ink: #2A2420; --ink-soft: #6B6154; --brick: #B5482F; --line: #DCD3BE;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Noto Sans JP', sans-serif; background: var(--paper); color: var(--ink); padding-bottom: 40px; -webkit-font-smoothing: antialiased; }
+
+    header { background: var(--wood-dark); color: var(--paper); padding: 16px 18px; display: flex; align-items: center; gap: 10px; }
+    header a { color: var(--paper); text-decoration: none; font-size: 1.1rem; }
+    header .title { font-size: 1.05rem; font-weight: 900; }
+
+    main { max-width: 480px; margin: 0 auto; padding: 16px; }
+
+    .login-panel { background: white; border-radius: 14px; padding: 24px 20px; margin-top: 20px; }
+    .login-panel h2 { font-size: 1rem; margin-bottom: 16px; }
+    .form-field { margin-bottom: 12px; }
+    .form-field label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--ink-soft); margin-bottom: 4px; }
+    .form-field input {
+        width: 100%; border: 1.5px solid var(--line); border-radius: 8px; padding: 10px;
+        font-size: 0.85rem; font-family: 'Noto Sans JP', sans-serif;
+    }
+    .primary-btn {
+        width: 100%; border: none; background: var(--wood); color: white; font-weight: 700;
+        font-size: 0.88rem; padding: 12px; border-radius: 10px; cursor: pointer; margin-top: 4px;
+    }
+    .error-msg { color: var(--brick); font-size: 0.75rem; margin-top: 8px; }
+    .user-bar { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: var(--ink-soft); margin-bottom: 14px; }
+    .logout-link { color: var(--magnet-dark); text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 0.72rem; font-family: 'Noto Sans JP', sans-serif; }
+
+    .add-toggle-btn {
+        width: 100%; border: 1.5px solid var(--grass); background: white; color: var(--grass); font-weight: 700;
+        padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; margin-bottom: 14px;
+    }
+
+    .player-card { background: white; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+    .player-card .row1 { display: flex; justify-content: space-between; align-items: center; }
+    .player-card .name { font-size: 0.95rem; font-weight: 700; }
+    .player-card .number { font-family: 'Space Mono', monospace; color: var(--magnet-dark); font-weight: 700; margin-right: 6px; }
+    .player-card .furigana { font-size: 0.7rem; color: var(--ink-soft); }
+    .player-card .edit-link { font-size: 0.72rem; color: var(--magnet-dark); text-decoration: underline; cursor: pointer; background: none; border: none; }
+
+    .edit-form { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+    .edit-form input {
+        width: 100%; border: 1.5px solid var(--line); border-radius: 6px; padding: 7px;
+        font-size: 0.78rem; margin-bottom: 6px; font-family: 'Noto Sans JP', sans-serif;
+    }
+    .edit-form-actions { display: flex; gap: 6px; margin-top: 6px; }
+    .edit-form-actions button {
+        flex: 1; border: none; padding: 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;
+    }
+    .save-btn2 { background: var(--grass); color: white; }
+    .delete-btn { background: var(--brick); color: white; }
+    .cancel-btn2 { background: var(--paper-dark); color: var(--ink-soft); }
+
+    .empty-note { text-align: center; color: var(--ink-soft); font-size: 0.82rem; padding: 30px 0; }
+    .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+    <a href="index.html">←</a>
+    <div class="title">📋 選手名簿</div>
+</header>
+
+<div id="displayNameSetupBanner" class="hidden" style="background:#EAF3F5; margin:12px 16px 0; border-radius:10px; padding:12px 14px; max-width:480px; margin-left:auto; margin-right:auto;">
+    <div style="font-size:0.72rem; font-weight:700; color:var(--ink-soft); margin-bottom:6px;">表示名を設定してください</div>
+    <div style="display:flex; gap:6px;">
+        <input id="displayNameInput" type="text" placeholder="例：山田花子" style="flex:1; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem;">
+        <button id="saveDisplayNameBtn" style="border:none; background:var(--wood); color:white; font-weight:700; padding:0 14px; border-radius:6px; font-size:0.75rem; cursor:pointer;">保存</button>
+    </div>
+</div>
+
+<main>
+    <div id="loginArea">
+        <div class="login-panel">
+            <h2>ログインしてください</h2>
+            <div class="form-field"><label>メールアドレス</label><input id="loginEmail" type="email"></div>
+            <div class="form-field"><label>パスワード</label><input id="loginPassword" type="password"></div>
+            <button class="primary-btn" id="loginBtn">ログイン</button>
+            <div class="error-msg hidden" id="loginError"></div>
+        </div>
+    </div>
+
+    <div id="mainArea" class="hidden">
+        <div class="user-bar">
+            <span id="currentUserEmail"></span>
+            <button class="logout-link" id="logoutBtn">ログアウト</button>
+        </div>
+
+        <button class="add-toggle-btn" id="addToggleBtn">＋ 選手を追加</button>
+        <div class="player-card hidden" id="addFormWrap">
+            <div class="edit-form" style="border-top:none; padding-top:0;">
+                <input id="newName" type="text" placeholder="漢字名前（例：山田太郎）">
+                <input id="newFurigana" type="text" placeholder="ひらがな名前（例：やまだたろう）">
+                <input id="newNumber" type="number" placeholder="背番号（例：7）">
+                <input id="newParentEmail" type="email" placeholder="保護者のメールアドレス（任意）">
+                <button class="save-btn2" id="confirmAddBtn" style="width:100%; border:none; padding:9px; border-radius:6px; font-size:0.78rem; font-weight:700; cursor:pointer;">この内容で登録する</button>
+            </div>
+        </div>
+
+        <button class="add-toggle-btn" id="bulkAddToggleBtn" style="border-color:var(--magnet); color:var(--magnet-dark);">＋ まとめて登録する</button>
+        <div class="player-card hidden" id="bulkAddFormWrap">
+            <div class="edit-form" style="border-top:none; padding-top:0;">
+                <div style="font-size:0.7rem; color:var(--ink-soft); margin-bottom:6px;">1行に1人。「背番号,漢字名前,ひらがな名前」の形式で貼り付けてください</div>
+                <textarea id="bulkAddTextarea" rows="6" placeholder="7,山田太郎,やまだたろう&#10;3,佐藤次郎,さとうじろう" style="width:100%; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.78rem; margin-bottom:6px;"></textarea>
+                <button class="save-btn2" id="confirmBulkAddBtn" style="width:100%; border:none; padding:9px; border-radius:6px; font-size:0.78rem; font-weight:700; cursor:pointer;">まとめて登録する</button>
+            </div>
+        </div>
+
+        <div id="playerList"></div>
+        <div class="empty-note hidden" id="emptyNote">まだ選手が登録されていません。</div>
+    </div>
+</main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import {
+        getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import {
+        getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, setDoc, getDoc,
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAnZ_Iif_iHbE-jmrc-XcCS0tLeUADPhqo",
+        authDomain: "liners-db85c.firebaseapp.com",
+        projectId: "liners-db85c",
+        storageBucket: "liners-db85c.firebasestorage.app",
+        messagingSenderId: "229305968070",
+        appId: "1:229305968070:web:bbca2e6fa562e6ff9b3ec7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // ===== 表示名(ホームページ側で設定したものと共通です) =====
+    let myDisplayName = null;
+
+    async function checkDisplayName(user) {
+        if (!user) { myDisplayName = null; return; }
+        try {
+            const snap = await getDoc(doc(db, 'users', user.uid));
+            if (snap.exists() && snap.data().displayName) {
+                myDisplayName = snap.data().displayName;
+                document.getElementById('displayNameSetupBanner').classList.add('hidden');
+            } else {
+                document.getElementById('displayNameSetupBanner').classList.remove('hidden');
+            }
+        } catch (e) {
+            // 表示名が読み込めなくても、メールアドレスで代用して続行する
+        }
+    }
+
+    document.getElementById('saveDisplayNameBtn').addEventListener('click', async () => {
+        const name = document.getElementById('displayNameInput').value.trim();
+        if (!name) { alert('表示名を入力してください'); return; }
+        try {
+            await setDoc(doc(db, 'users', auth.currentUser.uid), { displayName: name });
+            myDisplayName = name;
+            document.getElementById('displayNameSetupBanner').classList.add('hidden');
+        } catch (e) {
+            alert('表示名を保存できませんでした。\n\nエラー内容：' + e.message);
+        }
+    });
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+    }
+
+    let players = [];
+    let editingPlayerId = null;
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const errorEl = document.getElementById('loginError');
+        errorEl.classList.add('hidden');
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (e) {
+            errorEl.textContent = 'ログインできませんでした。メールアドレスとパスワードをご確認ください。';
+            errorEl.classList.remove('hidden');
+        }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+
+    onAuthStateChanged(auth, async (user) => {
+        await checkDisplayName(user);
+
+        if (user) {
+            document.getElementById('loginArea').classList.add('hidden');
+            document.getElementById('mainArea').classList.remove('hidden');
+            document.getElementById('currentUserEmail').textContent = myDisplayName || user.email;
+            await loadPlayers();
+        } else {
+            document.getElementById('loginArea').classList.remove('hidden');
+            document.getElementById('mainArea').classList.add('hidden');
+        }
+    });
+
+    async function loadPlayers() {
+        try {
+            const snap = await getDocs(collection(db, 'players'));
+            players = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            players.sort((a, b) => {
+                if (a.number == null && b.number == null) return (a.name || '').localeCompare(b.name || '', 'ja');
+                if (a.number == null) return 1;
+                if (b.number == null) return -1;
+                return a.number - b.number;
+            });
+            renderPlayerList();
+        } catch (e) {
+            document.getElementById('playerList').innerHTML =
+                '<div class="empty-note">選手一覧を読み込めませんでした。</div>';
+        }
+    }
+
+    function renderPlayerList() {
+        const listEl = document.getElementById('playerList');
+        const emptyNote = document.getElementById('emptyNote');
+
+        if (players.length === 0) {
+            listEl.innerHTML = '';
+            emptyNote.classList.remove('hidden');
+            return;
+        }
+        emptyNote.classList.add('hidden');
+
+        listEl.innerHTML = players.map((p) => {
+            const isEditing = editingPlayerId === p.id;
+            return '<div class="player-card">' +
+                '<div class="row1">' +
+                    '<div>' +
+                        (p.number != null ? '<span class="number">#' + p.number + '</span>' : '') +
+                        '<span class="name">' + escapeHtml(p.name) + '</span>' +
+                        (p.furigana ? '<div class="furigana">' + escapeHtml(p.furigana) + '</div>' : '') +
+                    '</div>' +
+                    '<div style="display:flex; gap:10px; align-items:center;">' +
+                        '<a href="growth.html?playerId=' + p.id + '" class="edit-link" style="text-decoration:none;">📈 成績</a>' +
+                        '<button class="edit-link" data-edit-id="' + p.id + '">' + (isEditing ? '閉じる' : '編集') + '</button>' +
+                    '</div>' +
+                '</div>' +
+                (isEditing ? buildEditForm(p) : '') +
+            '</div>';
+        }).join('');
+
+        listEl.querySelectorAll('[data-edit-id]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                editingPlayerId = editingPlayerId === btn.dataset.editId ? null : btn.dataset.editId;
+                renderPlayerList();
+            });
+        });
+
+        if (editingPlayerId) attachEditFormHandlers();
+    }
+
+    function buildEditForm(p) {
+        return '<div class="edit-form">' +
+            '<input id="editName" type="text" value="' + escapeHtml(p.name) + '" placeholder="漢字名前">' +
+            '<input id="editFurigana" type="text" value="' + escapeHtml(p.furigana || '') + '" placeholder="ひらがな名前">' +
+            '<input id="editNumber" type="number" value="' + (p.number != null ? p.number : '') + '" placeholder="背番号">' +
+            '<input id="editParentEmail" type="email" value="' + escapeHtml(p.parentEmail || '') + '" placeholder="保護者のメールアドレス">' +
+            '<div class="edit-form-actions">' +
+                '<button class="save-btn2" id="saveEditBtn">保存する</button>' +
+                '<button class="delete-btn" id="deletePlayerBtn">削除する</button>' +
+            '</div>' +
+        '</div>';
+    }
+
+    function attachEditFormHandlers() {
+        document.getElementById('saveEditBtn').addEventListener('click', async () => {
+            const name = document.getElementById('editName').value.trim();
+            const furigana = document.getElementById('editFurigana').value.trim();
+            const number = document.getElementById('editNumber').value.trim();
+            const parentEmail = document.getElementById('editParentEmail').value.trim();
+
+            if (!name) { alert('漢字名前は必須です'); return; }
+
+            try {
+                await updateDoc(doc(db, 'players', editingPlayerId), {
+                    name, furigana: furigana || null,
+                    number: number ? Number(number) : null,
+                    parentEmail: parentEmail || null,
+                });
+                editingPlayerId = null;
+                await loadPlayers();
+            } catch (e) {
+                alert('保存できませんでした。\n\nエラー内容：' + e.message);
+            }
+        });
+
+        document.getElementById('deletePlayerBtn').addEventListener('click', async () => {
+            const ok = confirm('この選手を名簿から削除します。よろしいですか？\n（成長記録などの過去のデータは残ります）');
+            if (!ok) return;
+
+            try {
+                await deleteDoc(doc(db, 'players', editingPlayerId));
+                editingPlayerId = null;
+                await loadPlayers();
+            } catch (e) {
+                alert('削除できませんでした。\n\nエラー内容：' + e.message);
+            }
+        });
+    }
+
+    document.getElementById('addToggleBtn').addEventListener('click', () => {
+        document.getElementById('addFormWrap').classList.toggle('hidden');
+    });
+
+    document.getElementById('confirmAddBtn').addEventListener('click', async () => {
+        const name = document.getElementById('newName').value.trim();
+        const furigana = document.getElementById('newFurigana').value.trim();
+        const number = document.getElementById('newNumber').value.trim();
+        const parentEmail = document.getElementById('newParentEmail').value.trim();
+
+        if (!name) { alert('漢字名前は必須です'); return; }
+
+        try {
+            await addDoc(collection(db, 'players'), {
+                name, furigana: furigana || null,
+                number: number ? Number(number) : null,
+                parentEmail: parentEmail || null,
+            });
+            ['newName', 'newFurigana', 'newNumber', 'newParentEmail'].forEach((id) => {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('addFormWrap').classList.add('hidden');
+            await loadPlayers();
+        } catch (e) {
+            alert('登録できませんでした。\n\nエラー内容：' + e.message);
+        }
+    });
+
+    document.getElementById('bulkAddToggleBtn').addEventListener('click', () => {
+        document.getElementById('bulkAddFormWrap').classList.toggle('hidden');
+    });
+
+    document.getElementById('confirmBulkAddBtn').addEventListener('click', async () => {
+        const lines = document.getElementById('bulkAddTextarea').value
+            .split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
+
+        if (lines.length === 0) { alert('登録する内容を入力してください'); return; }
+
+        let successCount = 0;
+        const errors = [];
+
+        for (const line of lines) {
+            const parts = line.split(',').map((s) => s.trim());
+            const numberStr = parts[0];
+            const name = parts[1];
+            const furigana = parts[2];
+
+            if (!name) { errors.push(line + '（漢字名前が見つかりません）'); continue; }
+
+            try {
+                await addDoc(collection(db, 'players'), {
+                    name,
+                    furigana: furigana || null,
+                    number: numberStr && !isNaN(Number(numberStr)) ? Number(numberStr) : null,
+                    parentEmail: null,
+                });
+                successCount++;
+            } catch (e) {
+                errors.push(line + '（' + e.message + '）');
+            }
+        }
+
+        alert(successCount + '人を登録しました。' + (errors.length > 0 ? '\n\n' + errors.length + '件、失敗：\n' + errors.join('\n') : ''));
+
+        document.getElementById('bulkAddTextarea').value = '';
+        document.getElementById('bulkAddFormWrap').classList.add('hidden');
+        await loadPlayers();
+    });
+</script>
+
+</body>
+</html>
