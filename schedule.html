@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>予定一覧 - ライナーズ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --paper: #F6F2E9; --paper-dark: #ECE5D4;
+        --wood: #6B4A34; --wood-dark: #4E3626;
+        --grass: #2F4A34; --magnet: #4A90A4; --magnet-dark: #366B7B;
+        --ink: #2A2420; --ink-soft: #6B6154; --brick: #B5482F; --line: #DCD3BE;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Noto Sans JP', sans-serif; background: var(--paper); color: var(--ink); padding-bottom: 40px; -webkit-font-smoothing: antialiased; }
+
+    header { background: var(--wood-dark); color: var(--paper); padding: 16px 18px; display: flex; align-items: center; gap: 10px; }
+    header a { color: var(--paper); text-decoration: none; font-size: 1.1rem; }
+    header .title { font-size: 1.05rem; font-weight: 900; }
+
+    main { max-width: 480px; margin: 0 auto; padding: 16px; }
+
+    .month-group { margin-bottom: 18px; }
+    .month-label { font-size: 0.85rem; font-weight: 900; color: var(--wood); margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid var(--wood); }
+
+    .event-row { background: white; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; gap: 12px; align-items: center; }
+    .event-row.game { border-left: 4px solid var(--brick); }
+    .event-row.practice { border-left: 4px solid var(--magnet); }
+    .event-date-box { text-align: center; flex-shrink: 0; width: 46px; }
+    .event-date-box .day { font-family: 'Space Mono', monospace; font-size: 1.1rem; font-weight: 700; }
+    .event-date-box .weekday { font-size: 0.65rem; color: var(--ink-soft); }
+    .event-date-box .weekday.sat { color: var(--magnet-dark); }
+    .event-date-box .weekday.sun { color: var(--brick); }
+    .event-body { flex: 1; }
+    .event-title { font-size: 0.85rem; font-weight: 700; }
+    .event-meta { font-size: 0.72rem; color: var(--ink-soft); margin-top: 2px; }
+
+    .empty-note { text-align: center; color: var(--ink-soft); font-size: 0.82rem; padding: 30px 0; }
+
+    .login-panel { background: white; border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+    .login-panel h2 { font-size: 0.9rem; margin-bottom: 12px; }
+    .form-field { margin-bottom: 10px; }
+    .form-field input, .form-field select {
+        width: 100%; border: 1.5px solid var(--line); border-radius: 8px; padding: 9px;
+        font-size: 0.8rem; font-family: 'Noto Sans JP', sans-serif;
+    }
+    .primary-btn {
+        width: 100%; border: none; background: var(--wood); color: white; font-weight: 700;
+        font-size: 0.85rem; padding: 11px; border-radius: 8px; cursor: pointer;
+    }
+    .toggle-link { display:block; text-align:center; color: var(--magnet-dark); text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 0.75rem; margin-bottom: 14px; width: 100%; padding: 8px; }
+    .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+    <a href="index.html">←</a>
+    <div class="title">📅 予定一覧</div>
+</header>
+
+<main>
+    <button class="toggle-link" id="coachToggleBtn">🔑 コーチ用：予定を追加する →</button>
+
+    <div id="loginArea" class="hidden">
+        <div class="login-panel">
+            <div id="loginForm">
+                <h2>ログインしてください</h2>
+                <div class="form-field"><input id="loginEmail" type="email" placeholder="メールアドレス"></div>
+                <div class="form-field"><input id="loginPassword" type="password" placeholder="パスワード"></div>
+                <button class="primary-btn" id="loginBtn">ログイン</button>
+            </div>
+            <div id="addForm" class="hidden">
+                <h2>新しい予定を追加</h2>
+                <select id="newEventType" style="width:100%; border:1.5px solid var(--line); border-radius:8px; padding:9px; font-size:0.8rem; margin-bottom:10px;">
+                    <option value="practice">練習</option>
+                    <option value="game">試合</option>
+                </select>
+                <div class="form-field"><input id="newEventDate" type="date"></div>
+                <div style="display:flex; gap:6px; margin-bottom:10px;">
+                    <input id="newEventStartTime" type="time" style="flex:1; border:1.5px solid var(--line); border-radius:8px; padding:9px; font-size:0.8rem;">
+                    <input id="newEventEndTime" type="time" style="flex:1; border:1.5px solid var(--line); border-radius:8px; padding:9px; font-size:0.8rem;">
+                </div>
+                <div class="form-field"><input id="newEventLocation" type="text" placeholder="場所"></div>
+                <div class="form-field"><input id="newEventOpponent" type="text" placeholder="対戦相手（試合の場合のみ）"></div>
+                <div class="form-field"><input id="newEventTournament" type="text" placeholder="大会名（試合の場合のみ、任意）"></div>
+                <button class="primary-btn" id="addEventBtn">この予定を追加する</button>
+                <button class="toggle-link" id="logoutBtn" style="margin-top:8px; margin-bottom:0;">ログアウト</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="scheduleList"></div>
+    <div class="empty-note hidden" id="emptyNote">今後の予定はまだ登録されていません。</div>
+</main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import {
+        getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import {
+        getFirestore, collection, addDoc, getDocs, orderBy, query, where, doc, getDoc,
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAnZ_Iif_iHbE-jmrc-XcCS0tLeUADPhqo",
+        authDomain: "liners-db85c.firebaseapp.com",
+        projectId: "liners-db85c",
+        storageBucket: "liners-db85c.firebasestorage.app",
+        messagingSenderId: "229305968070",
+        appId: "1:229305968070:web:bbca2e6fa562e6ff9b3ec7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let myDisplayName = null;
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+    }
+
+    document.getElementById('coachToggleBtn').addEventListener('click', () => {
+        document.getElementById('loginArea').classList.toggle('hidden');
+    });
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (e) {
+            alert('ログインできませんでした。メールアドレスとパスワードをご確認ください。');
+        }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            try {
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                myDisplayName = (snap.exists() && snap.data().displayName) ? snap.data().displayName : null;
+            } catch (e) { myDisplayName = null; }
+        } else {
+            myDisplayName = null;
+        }
+
+        document.getElementById('loginForm').classList.toggle('hidden', !!user);
+        document.getElementById('addForm').classList.toggle('hidden', !user);
+    });
+
+    document.getElementById('addEventBtn').addEventListener('click', async () => {
+        const type = document.getElementById('newEventType').value;
+        const date = document.getElementById('newEventDate').value;
+        const startTime = document.getElementById('newEventStartTime').value;
+        const endTime = document.getElementById('newEventEndTime').value;
+        const time = startTime && endTime ? (startTime + '〜' + endTime) : (startTime || '');
+        const location = document.getElementById('newEventLocation').value.trim();
+        const opponent = document.getElementById('newEventOpponent').value.trim();
+        const tournamentName = document.getElementById('newEventTournament').value.trim();
+
+        if (!date) { alert('日付を入力してください'); return; }
+
+        try {
+            await addDoc(collection(db, 'schedule'), {
+                type, date, time: time || null,
+                startTime: startTime || null, endTime: endTime || null,
+                location: location || null,
+                opponent: type === 'game' ? (opponent || null) : null,
+                tournamentName: type === 'game' ? (tournamentName || null) : null,
+                addedBy: myDisplayName || auth.currentUser.email,
+            });
+            ['newEventDate', 'newEventStartTime', 'newEventEndTime', 'newEventLocation', 'newEventOpponent', 'newEventTournament'].forEach((id) => {
+                document.getElementById(id).value = '';
+            });
+            alert('予定を追加しました！');
+            await loadAllSchedule();
+        } catch (e) {
+            alert('追加できませんでした。\n\nエラー内容：' + e.message);
+        }
+    });
+
+    const weekdayKanji = ['日', '月', '火', '水', '木', '金', '土'];
+
+    async function loadAllSchedule() {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const listEl = document.getElementById('scheduleList');
+        const emptyNote = document.getElementById('emptyNote');
+
+        try {
+            const q = query(collection(db, 'schedule'), where('date', '>=', todayStr), orderBy('date', 'asc'));
+            const snap = await getDocs(q);
+            const events = snap.docs.map((d) => d.data());
+
+            if (events.length === 0) {
+                listEl.innerHTML = '';
+                emptyNote.classList.remove('hidden');
+                return;
+            }
+            emptyNote.classList.add('hidden');
+
+            // 月ごとにグループ分けする
+            const groups = {};
+            events.forEach((e) => {
+                const monthKey = e.date.slice(0, 7); // "2026-08"
+                if (!groups[monthKey]) groups[monthKey] = [];
+                groups[monthKey].push(e);
+            });
+
+            listEl.innerHTML = Object.keys(groups).sort().map((monthKey) => {
+                const [y, m] = monthKey.split('-');
+                const rows = groups[monthKey].map((e) => {
+                    const d = new Date(e.date + 'T00:00:00');
+                    const weekday = d.getDay();
+                    const weekdayClass = weekday === 6 ? 'sat' : weekday === 0 ? 'sun' : '';
+                    const title = e.type === 'game'
+                        ? '⚾ 試合' + (e.tournamentName ? '　' + escapeHtml(e.tournamentName) : '') + (e.opponent ? '　対 ' + escapeHtml(e.opponent) : '')
+                        : '練習';
+
+                    return '<div class="event-row ' + e.type + '">' +
+                        '<div class="event-date-box">' +
+                            '<div class="day">' + d.getDate() + '</div>' +
+                            '<div class="weekday ' + weekdayClass + '">' + weekdayKanji[weekday] + '</div>' +
+                        '</div>' +
+                        '<div class="event-body">' +
+                            '<div class="event-title">' + title + '</div>' +
+                            '<div class="event-meta">' +
+                                (e.time ? '🕒 ' + escapeHtml(e.time) + '　' : '') +
+                                (e.location ? '📍 ' + escapeHtml(e.location) : '') +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+
+                return '<div class="month-group"><div class="month-label">' + y + '年' + Number(m) + '月</div>' + rows + '</div>';
+            }).join('');
+        } catch (e) {
+            listEl.innerHTML = '';
+            emptyNote.classList.remove('hidden');
+            emptyNote.textContent = '予定を読み込めませんでした。';
+        }
+    }
+
+    loadAllSchedule();
+</script>
+
+</body>
+</html>
