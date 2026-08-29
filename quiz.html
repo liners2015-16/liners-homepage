@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>野球IQクイズ - ライナーズ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --paper: #F6F2E9;
+        --paper-dark: #ECE5D4;
+        --wood: #6B4A34;
+        --wood-dark: #4E3626;
+        --grass: #2F4A34;
+        --grass-light: #3E5F45;
+        --magnet: #4A90A4;
+        --magnet-dark: #366B7B;
+        --ink: #2A2420;
+        --ink-soft: #6B6154;
+        --brick: #B5482F;
+        --line: #DCD3BE;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        font-family: 'Noto Sans JP', sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+        padding-bottom: 40px;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .display { font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 900; }
+    .mono { font-family: 'Space Mono', monospace; }
+
+    header {
+        background: var(--wood-dark); color: var(--paper); padding: 16px 18px;
+        display: flex; align-items: center; gap: 10px;
+    }
+    header a { color: var(--paper); text-decoration: none; font-size: 1.1rem; }
+    header .title { font-size: 1.05rem; font-weight: 900; }
+
+    main { max-width: 480px; margin: 0 auto; padding: 16px; }
+
+    .progress-banner {
+        background: white; border: 1.5px solid var(--line); border-radius: 12px;
+        padding: 14px 16px; margin-bottom: 16px;
+    }
+    .progress-banner .headline { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
+    .progress-bar-track { background: var(--paper-dark); border-radius: 999px; height: 8px; overflow: hidden; margin-bottom: 8px; }
+    .progress-bar-fill { background: var(--grass); height: 100%; border-radius: 999px; transition: width 0.3s; }
+    .progress-detail { font-size: 0.72rem; color: var(--ink-soft); }
+
+    .mode-buttons { display: flex; gap: 8px; margin-top: 10px; }
+    .mode-btn {
+        flex: 1; border: 1.5px solid var(--magnet); background: white; color: var(--magnet-dark);
+        font-family: 'Noto Sans JP', sans-serif; font-weight: 700; font-size: 0.78rem;
+        padding: 9px; border-radius: 8px; cursor: pointer;
+    }
+    .mode-btn.primary { background: var(--magnet); color: white; }
+    .mode-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .category-filter { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; }
+    .category-chip {
+        flex-shrink: 0; border: 1.5px solid var(--line); background: white; color: var(--ink-soft);
+        font-family: 'Noto Sans JP', sans-serif; font-size: 0.72rem; font-weight: 700;
+        padding: 6px 12px; border-radius: 999px; cursor: pointer;
+    }
+    .category-chip.active { background: var(--wood); border-color: var(--wood); color: white; }
+
+    .question-card {
+        background: white; border-radius: 14px; padding: 18px 16px;
+        box-shadow: 0 2px 6px rgba(42,36,32,0.1);
+    }
+    .question-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .question-category-tag {
+        display: inline-block; background: var(--paper-dark); color: var(--ink-soft);
+        font-size: 0.65rem; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+    }
+    .question-counter { font-size: 0.7rem; color: var(--ink-soft); font-family: 'Space Mono', monospace; }
+    .question-type-note { font-size: 0.68rem; color: var(--brick); font-weight: 700; margin-bottom: 6px; }
+    .question-text { font-size: 0.95rem; font-weight: 700; line-height: 1.6; margin-bottom: 16px; }
+
+    .choice-btn {
+        display: block; width: 100%; text-align: left; border: 1.5px solid var(--line); background: white;
+        border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; font-size: 0.85rem;
+        font-family: 'Noto Sans JP', sans-serif; color: var(--ink); cursor: pointer; line-height: 1.5;
+    }
+    .choice-btn .choice-mark {
+        display: inline-block; width: 20px; height: 20px; border: 1.5px solid var(--line);
+        margin-right: 8px; vertical-align: middle; text-align: center; line-height: 18px; font-size: 0.7rem;
+        color: transparent;
+    }
+    .choice-btn.multi .choice-mark { border-radius: 4px; }
+    .choice-btn.single .choice-mark { border-radius: 50%; }
+    .choice-btn.selected { border-color: var(--magnet); background: #EAF3F5; }
+    .choice-btn.selected .choice-mark { background: var(--magnet); border-color: var(--magnet); color: white; }
+
+    .choice-btn.correct { border-color: var(--grass); background: #EAF1EC; }
+    .choice-btn.correct .choice-mark { background: var(--grass); border-color: var(--grass); color: white; }
+    .choice-btn.incorrect { border-color: var(--brick); background: #FBF0ED; }
+    .choice-btn.incorrect .choice-mark { background: var(--brick); border-color: var(--brick); color: white; }
+    .choice-btn.disabled { cursor: default; }
+
+    .submit-btn {
+        width: 100%; border: none; background: var(--wood); color: white; font-weight: 700;
+        font-size: 0.88rem; padding: 13px; border-radius: 10px; margin-top: 6px; cursor: pointer;
+    }
+    .submit-btn:disabled { background: var(--line); color: var(--ink-soft); cursor: not-allowed; }
+
+    .result-banner {
+        margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 0.82rem; font-weight: 700;
+    }
+    .result-banner.correct-result { background: #EAF1EC; color: var(--grass); }
+    .result-banner.incorrect-result { background: #FBF0ED; color: var(--brick); }
+    .explanation { margin-top: 8px; font-size: 0.78rem; color: var(--ink-soft); line-height: 1.6; font-weight: 400; }
+
+    .next-btn {
+        width: 100%; border: none; background: var(--grass); color: white; font-weight: 700;
+        font-size: 0.88rem; padding: 13px; border-radius: 10px; margin-top: 12px; cursor: pointer;
+    }
+
+    .empty-state, .session-complete {
+        background: white; border-radius: 14px; padding: 32px 20px; text-align: center;
+    }
+    .empty-state .icon, .session-complete .icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .empty-state .txt { font-size: 0.85rem; color: var(--ink-soft); line-height: 1.7; }
+    .session-complete .score { font-size: 1.8rem; font-weight: 900; font-family: 'Space Mono', monospace; color: var(--wood); margin: 8px 0; }
+
+    .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+    <a href="index.html">←</a>
+    <div class="title">🧠 野球IQクイズ</div>
+    <a href="#" id="quizCoachToggleLink" style="color:white; font-size:0.7rem; margin-left:auto; text-decoration:underline;">🔑 コーチ用</a>
+</header>
+
+<div id="displayNameSetupBanner" class="hidden" style="background:#EAF3F5; margin:12px 16px 0; border-radius:10px; padding:12px 14px; max-width:480px; margin-left:auto; margin-right:auto;">
+    <div style="font-size:0.72rem; font-weight:700; color:var(--ink-soft); margin-bottom:6px;">表示名を設定してください（問題を追加した時に「誰が作ったか」として残ります）</div>
+    <div style="display:flex; gap:6px;">
+        <input id="displayNameInput" type="text" placeholder="例：山田花子" style="flex:1; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem;">
+        <button id="saveDisplayNameBtn" style="border:none; background:var(--wood); color:white; font-weight:700; padding:0 14px; border-radius:6px; font-size:0.75rem; cursor:pointer;">保存</button>
+    </div>
+</div>
+
+<main>
+    <div id="quizLoginArea" class="hidden" style="margin-bottom:14px;">
+        <div class="question-card">
+            <div style="font-size:0.72rem; color:var(--ink-soft); margin-bottom:6px;" id="quizAuthStatus"></div>
+            <div id="quizLoginForm">
+                <div style="display:flex; gap:6px; margin-bottom:6px;">
+                    <input id="quizLoginEmail" type="email" placeholder="メールアドレス" style="flex:1; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem;">
+                    <input id="quizLoginPassword" type="password" placeholder="パスワード" style="flex:1; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem;">
+                </div>
+                <button id="quizLoginBtn" style="width:100%; border:none; background:var(--magnet); color:white; font-weight:700; padding:8px; border-radius:6px; font-size:0.75rem; cursor:pointer;">コーチ・監督としてログイン</button>
+            </div>
+            <div id="quizAddForm" class="hidden">
+                <div style="font-size:0.75rem; font-weight:700; margin-bottom:8px;">新しい問題を追加</div>
+                <input id="newQuizCategory" type="text" placeholder="カテゴリ（例：ボールデッド）" style="width:100%; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem; margin-bottom:6px;">
+                <select id="newQuizType" style="width:100%; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem; margin-bottom:6px;">
+                    <option value="single">単一選択（正解は1つ）</option>
+                    <option value="multi">複数選択（正解が複数の場合も）</option>
+                </select>
+                <textarea id="newQuizQuestion" rows="3" placeholder="問題文" style="width:100%; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem; margin-bottom:8px;"></textarea>
+
+                <div style="font-size:0.68rem; color:var(--ink-soft); margin-bottom:4px;">選択肢（使う分だけ入力。チェックした欄が正解になります）</div>
+                <div id="quizChoiceInputs"></div>
+
+                <textarea id="newQuizExplanation" rows="3" placeholder="解説（正解発表時に表示されます）" style="width:100%; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.75rem; margin:8px 0;"></textarea>
+                <button id="addQuizBtn" style="width:100%; border:none; background:var(--grass); color:white; font-weight:700; padding:9px; border-radius:6px; font-size:0.78rem; cursor:pointer;">この問題を追加する</button>
+
+                <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--line);">
+                    <div style="font-size:0.75rem; font-weight:700; margin-bottom:8px;">登録済みの問題を管理</div>
+                    <div id="quizManageList"></div>
+                </div>
+
+                <button id="quizLogoutBtn" style="width:100%; border:none; background:none; color:var(--ink-soft); font-size:0.7rem; padding:8px; margin-top:10px; cursor:pointer; text-decoration:underline;">ログアウト</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-banner">
+        <div class="headline" id="progressHeadline"></div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressBarFill"></div></div>
+        <div class="progress-detail" id="progressDetail"></div>
+        <div class="mode-buttons">
+            <button class="mode-btn primary" id="startUnansweredBtn">未挑戦の問題から始める</button>
+            <button class="mode-btn" id="startAllBtn">最初から全部やる</button>
+        </div>
+    </div>
+
+    <div class="category-filter" id="categoryFilter"></div>
+
+    <div id="quizArea"></div>
+</main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import {
+        getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import {
+        getFirestore, collection, addDoc, getDocs, orderBy, query, doc, setDoc, getDoc, updateDoc, deleteDoc,
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAnZ_Iif_iHbE-jmrc-XcCS0tLeUADPhqo",
+        authDomain: "liners-db85c.firebaseapp.com",
+        projectId: "liners-db85c",
+        storageBucket: "liners-db85c.firebasestorage.app",
+        messagingSenderId: "229305968070",
+        appId: "1:229305968070:web:bbca2e6fa562e6ff9b3ec7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // ===== 表示名(ホームページ側で設定したものと共通です) =====
+    let myDisplayName = null;
+
+    async function checkDisplayName(user) {
+        if (!user) { myDisplayName = null; return; }
+        try {
+            const snap = await getDoc(doc(db, 'users', user.uid));
+            if (snap.exists() && snap.data().displayName) {
+                myDisplayName = snap.data().displayName;
+                document.getElementById('displayNameSetupBanner').classList.add('hidden');
+            } else {
+                document.getElementById('displayNameSetupBanner').classList.remove('hidden');
+            }
+        } catch (e) {
+            // 表示名が読み込めなくても、メールアドレスで代用して続行する
+        }
+    }
+
+    document.getElementById('saveDisplayNameBtn').addEventListener('click', async () => {
+        const name = document.getElementById('displayNameInput').value.trim();
+        if (!name) { alert('表示名を入力してください'); return; }
+        try {
+            await setDoc(doc(db, 'users', auth.currentUser.uid), { displayName: name });
+            myDisplayName = name;
+            document.getElementById('displayNameSetupBanner').classList.add('hidden');
+        } catch (e) {
+            alert('表示名を保存できませんでした。\n\nエラー内容：' + e.message);
+        }
+    });
+
+    // ===============================================
+    // 問題データは、Firestoreの「quizQuestions」から読み込みます。
+    // コーチがログインして画面から追加すれば、ここに反映されます。
+    // ===============================================
+    let quizData = [];
+
+    async function loadQuizData() {
+        try {
+            const q = query(collection(db, 'quizQuestions'), orderBy('createdAt', 'asc'));
+            const snap = await getDocs(q);
+            quizData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        } catch (e) {
+            quizData = [];
+        }
+        renderQuizManageList();
+    }
+
+    let editingQuizId = null;
+
+    function renderQuizManageList() {
+        const listEl = document.getElementById('quizManageList');
+        if (!listEl) return;
+
+        if (quizData.length === 0) {
+            listEl.innerHTML = '<div style="font-size:0.72rem; color:var(--ink-soft);">まだ問題がありません。</div>';
+            return;
+        }
+
+        listEl.innerHTML = quizData.map((q) => {
+            const isEditing = editingQuizId === q.id;
+            return '<div style="background:white; border-radius:8px; padding:10px; margin-bottom:8px;">' +
+                '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">' +
+                    '<div style="font-size:0.75rem; flex:1;">【' + escapeHtml(q.category) + '】' + escapeHtml(q.question.slice(0, 30)) + (q.question.length > 30 ? '…' : '') + '</div>' +
+                    '<button data-quiz-edit-id="' + q.id + '" style="border:none; background:none; color:var(--magnet-dark); font-size:0.7rem; text-decoration:underline; cursor:pointer; white-space:nowrap;">' + (isEditing ? '閉じる' : '編集') + '</button>' +
+                '</div>' +
+                (isEditing ? buildQuizEditForm(q) : '') +
+            '</div>';
+        }).join('');
+
+        listEl.querySelectorAll('[data-quiz-edit-id]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                editingQuizId = editingQuizId === btn.dataset.quizEditId ? null : btn.dataset.quizEditId;
+                renderQuizManageList();
+            });
+        });
+
+        if (editingQuizId) attachQuizEditHandlers();
+    }
+
+    function buildQuizEditForm(q) {
+        const choiceRows = Array.from({ length: MAX_CHOICES }, (_, i) => {
+            const c = q.choices[i] || { text: '', correct: false };
+            return '<div style="display:flex; gap:6px; align-items:center; margin-bottom:6px;">' +
+                '<input type="checkbox" class="edit-choice-correct" ' + (c.correct ? 'checked' : '') + ' style="flex-shrink:0;">' +
+                '<input type="text" class="edit-choice-text" value="' + escapeHtml(c.text) + '" placeholder="選択肢' + (i + 1) + '" style="flex:1; border:1.5px solid var(--line); border-radius:6px; padding:6px; font-size:0.72rem;">' +
+            '</div>';
+        }).join('');
+
+        return '<div style="margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);">' +
+            '<input id="editQuizCategory" type="text" value="' + escapeHtml(q.category) + '" style="width:100%; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.72rem; margin-bottom:6px;">' +
+            '<select id="editQuizType" style="width:100%; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.72rem; margin-bottom:6px;">' +
+                '<option value="single"' + (q.type === 'single' ? ' selected' : '') + '>単一選択</option>' +
+                '<option value="multi"' + (q.type === 'multi' ? ' selected' : '') + '>複数選択</option>' +
+            '</select>' +
+            '<textarea id="editQuizQuestion" rows="3" style="width:100%; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.72rem; margin-bottom:8px;">' + escapeHtml(q.question) + '</textarea>' +
+            '<div id="editQuizChoiceInputs">' + choiceRows + '</div>' +
+            '<textarea id="editQuizExplanation" rows="3" style="width:100%; border:1.5px solid var(--line); border-radius:6px; padding:7px; font-size:0.72rem; margin:8px 0;">' + escapeHtml(q.explanation || '') + '</textarea>' +
+            '<div style="display:flex; gap:6px;">' +
+                '<button id="saveQuizEditBtn" style="flex:1; border:none; background:var(--grass); color:white; font-weight:700; padding:8px; border-radius:6px; font-size:0.72rem; cursor:pointer;">保存する</button>' +
+                '<button id="deleteQuizBtn" style="flex:1; border:none; background:var(--brick); color:white; font-weight:700; padding:8px; border-radius:6px; font-size:0.72rem; cursor:pointer;">削除する</button>' +
+            '</div>' +
+        '</div>';
+    }
+
+    function attachQuizEditHandlers() {
+        document.getElementById('saveQuizEditBtn').addEventListener('click', async () => {
+            const category = document.getElementById('editQuizCategory').value.trim();
+            const type = document.getElementById('editQuizType').value;
+            const question = document.getElementById('editQuizQuestion').value.trim();
+            const explanation = document.getElementById('editQuizExplanation').value.trim();
+
+            const choiceRows = [...document.querySelectorAll('#editQuizChoiceInputs > div')];
+            const choices = choiceRows
+                .map((row) => ({
+                    text: row.querySelector('.edit-choice-text').value.trim(),
+                    correct: row.querySelector('.edit-choice-correct').checked,
+                }))
+                .filter((c) => c.text.length > 0);
+
+            if (!category || !question || choices.length < 2) {
+                alert('カテゴリ・問題文と、2つ以上の選択肢を入力してください');
+                return;
+            }
+            if (!choices.some((c) => c.correct)) {
+                alert('正解の選択肢を、少なくとも1つチェックしてください');
+                return;
+            }
+
+            try {
+                await updateDoc(doc(db, 'quizQuestions', editingQuizId), { category, type, question, choices, explanation });
+                editingQuizId = null;
+                await loadQuizData();
+                renderCategoryFilter();
+                renderProgressBanner();
+            } catch (e) {
+                alert('保存できませんでした。\n\nエラー内容：' + e.message);
+            }
+        });
+
+        document.getElementById('deleteQuizBtn').addEventListener('click', async () => {
+            const ok = confirm('この問題を削除します。よろしいですか？');
+            if (!ok) return;
+
+            try {
+                await deleteDoc(doc(db, 'quizQuestions', editingQuizId));
+                editingQuizId = null;
+                await loadQuizData();
+                renderCategoryFilter();
+                renderProgressBanner();
+            } catch (e) {
+                alert('削除できませんでした。\n\nエラー内容：' + e.message);
+            }
+        });
+    }
+
+    const STORAGE_KEY = 'baseballQuizAnsweredIds';
+
+    function getAnsweredIds() {
+        try {
+            return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+        } catch (e) {
+            return new Set();
+        }
+    }
+
+    function markAnswered(id) {
+        const ids = getAnsweredIds();
+        ids.add(id);
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+        } catch (e) { /* localStorageが使えない環境では進捗保存をあきらめる */ }
+    }
+
+    const categories = ['すべて', ...new Set(quizData.map(q => q.category))];
+    let currentCategory = 'すべて';
+    let sessionQueue = [];
+    let sessionIndex = 0;
+    let sessionCorrectCount = 0;
+    let currentSelection = new Set();
+    let currentAnswered = false;
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function filteredQuestions() {
+        return currentCategory === 'すべて' ? quizData : quizData.filter(q => q.category === currentCategory);
+    }
+
+    function renderProgressBanner() {
+        const pool = filteredQuestions();
+        const answeredIds = getAnsweredIds();
+        const answeredCount = pool.filter(q => answeredIds.has(q.id)).length;
+        const total = pool.length;
+        const pct = total > 0 ? Math.round((answeredCount / total) * 100) : 0;
+
+        document.getElementById('progressHeadline').textContent =
+            currentCategory === 'すべて' ? '全体の進捗' : '「' + currentCategory + '」の進捗';
+        document.getElementById('progressBarFill').style.width = pct + '%';
+        document.getElementById('progressDetail').textContent =
+            total + '問中 ' + answeredCount + '問に挑戦済み（未挑戦 ' + (total - answeredCount) + '問）';
+
+        document.getElementById('startUnansweredBtn').disabled = (total - answeredCount) === 0;
+    }
+
+    function renderCategoryFilter() {
+        const el = document.getElementById('categoryFilter');
+        el.innerHTML = categories.map(cat =>
+            '<button class="category-chip' + (cat === currentCategory ? ' active' : '') + '" data-cat="' + escapeHtml(cat) + '">' + escapeHtml(cat) + '</button>'
+        ).join('');
+        el.querySelectorAll('.category-chip').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentCategory = btn.dataset.cat;
+                renderCategoryFilter();
+                renderProgressBanner();
+                showEmptyOrStart();
+            });
+        });
+    }
+
+    function showEmptyOrStart() {
+        const area = document.getElementById('quizArea');
+        area.innerHTML = '<div class="empty-state"><div class="icon">👆</div><div class="txt">上のボタンから、問題を始めましょう。</div></div>';
+    }
+
+    function startSession(onlyUnanswered) {
+        const pool = filteredQuestions();
+        const answeredIds = getAnsweredIds();
+        sessionQueue = onlyUnanswered ? pool.filter(q => !answeredIds.has(q.id)) : pool.slice();
+
+        if (sessionQueue.length === 0) {
+            document.getElementById('quizArea').innerHTML =
+                '<div class="empty-state"><div class="icon">🎉</div><div class="txt">この範囲の問題は、もう全部挑戦済みです！<br>「最初から全部やる」で復習もできます。</div></div>';
+            return;
+        }
+
+        sessionIndex = 0;
+        sessionCorrectCount = 0;
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const q = sessionQueue[sessionIndex];
+        currentSelection = new Set();
+        currentAnswered = false;
+
+        const isMulti = q.type === 'multi';
+        const typeNote = isMulti ? '（あてはまるものを全て選んでください）' : '（正解を1つ選んでください）';
+
+        const choicesHtml = q.choices.map((c, i) =>
+            '<button class="choice-btn ' + (isMulti ? 'multi' : 'single') + '" data-choice-idx="' + i + '">' +
+                '<span class="choice-mark">✓</span>' + escapeHtml(c.text) +
+            '</button>'
+        ).join('');
+
+        document.getElementById('quizArea').innerHTML =
+            '<div class="question-card">' +
+                '<div class="question-meta">' +
+                    '<span class="question-category-tag">' + escapeHtml(q.category) + '</span>' +
+                    '<span class="question-counter">' + (sessionIndex + 1) + ' / ' + sessionQueue.length + '</span>' +
+                '</div>' +
+                '<div class="question-type-note">' + typeNote + '</div>' +
+                '<div class="question-text">' + escapeHtml(q.question) + '</div>' +
+                '<div id="choicesWrap">' + choicesHtml + '</div>' +
+                '<button class="submit-btn" id="submitAnswerBtn" disabled>回答する</button>' +
+                '<div id="answerResultArea"></div>' +
+            '</div>';
+
+        document.querySelectorAll('.choice-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (currentAnswered) return;
+                const idx = Number(btn.dataset.choiceIdx);
+
+                if (isMulti) {
+                    if (currentSelection.has(idx)) currentSelection.delete(idx);
+                    else currentSelection.add(idx);
+                } else {
+                    currentSelection = new Set([idx]);
+                }
+                updateChoiceStyles(isMulti);
+            });
+        });
+
+        document.getElementById('submitAnswerBtn').addEventListener('click', submitAnswer);
+    }
+
+    function updateChoiceStyles(isMulti) {
+        document.querySelectorAll('.choice-btn').forEach(btn => {
+            const idx = Number(btn.dataset.choiceIdx);
+            btn.classList.toggle('selected', currentSelection.has(idx));
+        });
+        document.getElementById('submitAnswerBtn').disabled = currentSelection.size === 0;
+    }
+
+    function submitAnswer() {
+        const q = sessionQueue[sessionIndex];
+        currentAnswered = true;
+        markAnswered(q.id);
+
+        const correctIdxSet = new Set(q.choices.map((c, i) => c.correct ? i : null).filter(i => i !== null));
+        const isCorrect = correctIdxSet.size === currentSelection.size &&
+            [...correctIdxSet].every(i => currentSelection.has(i));
+
+        if (isCorrect) sessionCorrectCount++;
+
+        document.querySelectorAll('.choice-btn').forEach(btn => {
+            const idx = Number(btn.dataset.choiceIdx);
+            btn.classList.add('disabled');
+            if (correctIdxSet.has(idx)) btn.classList.add('correct');
+            else if (currentSelection.has(idx)) btn.classList.add('incorrect');
+        });
+
+        document.getElementById('submitAnswerBtn').classList.add('hidden');
+
+        document.getElementById('answerResultArea').innerHTML =
+            '<div class="result-banner ' + (isCorrect ? 'correct-result' : 'incorrect-result') + '">' +
+                (isCorrect ? '⭕ 正解です！' : '❌ 不正解です') +
+                '<div class="explanation">' + escapeHtml(q.explanation) + '</div>' +
+            '</div>' +
+            '<button class="next-btn" id="nextQuestionBtn">' +
+                (sessionIndex < sessionQueue.length - 1 ? '次の問題へ' : '結果を見る') +
+            '</button>';
+
+        document.getElementById('nextQuestionBtn').addEventListener('click', () => {
+            sessionIndex++;
+            if (sessionIndex < sessionQueue.length) {
+                renderQuestion();
+            } else {
+                showSessionComplete();
+            }
+            renderProgressBanner();
+        });
+    }
+
+    function showSessionComplete() {
+        document.getElementById('quizArea').innerHTML =
+            '<div class="session-complete">' +
+                '<div class="icon">🏆</div>' +
+                '<div>お疲れさまでした！</div>' +
+                '<div class="score">' + sessionCorrectCount + ' / ' + sessionQueue.length + ' 問正解</div>' +
+                '<button class="mode-btn primary" id="backToMenuBtn" style="margin-top:12px;">メニューに戻る</button>' +
+            '</div>';
+        document.getElementById('backToMenuBtn').addEventListener('click', showEmptyOrStart);
+    }
+
+    document.getElementById('startUnansweredBtn').addEventListener('click', () => startSession(true));
+    document.getElementById('startAllBtn').addEventListener('click', () => startSession(false));
+
+    // ===== コーチ用: ログイン・問題追加 =====
+    document.getElementById('quizCoachToggleLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('quizLoginArea').classList.toggle('hidden');
+    });
+
+    document.getElementById('quizLoginBtn').addEventListener('click', async () => {
+        const email = document.getElementById('quizLoginEmail').value.trim();
+        const password = document.getElementById('quizLoginPassword').value;
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (e) {
+            alert('ログインできませんでした。メールアドレスとパスワードをご確認ください。');
+        }
+    });
+
+    document.getElementById('quizLogoutBtn').addEventListener('click', () => signOut(auth));
+
+    const MAX_CHOICES = 6;
+    function renderChoiceInputs() {
+        const wrap = document.getElementById('quizChoiceInputs');
+        wrap.innerHTML = '';
+        for (let i = 0; i < MAX_CHOICES; i++) {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex; gap:6px; align-items:center; margin-bottom:6px;';
+            row.innerHTML =
+                '<input type="checkbox" class="quiz-choice-correct" style="flex-shrink:0;">' +
+                '<input type="text" class="quiz-choice-text" placeholder="選択肢' + (i + 1) + (i >= 2 ? '（空欄でOK）' : '') + '" style="flex:1; border:1.5px solid var(--line); border-radius:6px; padding:6px; font-size:0.72rem;">';
+            wrap.appendChild(row);
+        }
+    }
+    renderChoiceInputs();
+
+    onAuthStateChanged(auth, async (user) => {
+        await checkDisplayName(user);
+
+        const loginForm = document.getElementById('quizLoginForm');
+        const addForm = document.getElementById('quizAddForm');
+        const statusEl = document.getElementById('quizAuthStatus');
+
+        if (user) {
+            loginForm.classList.add('hidden');
+            addForm.classList.remove('hidden');
+            statusEl.textContent = 'ログイン中：' + (myDisplayName || user.email);
+        } else {
+            loginForm.classList.remove('hidden');
+            addForm.classList.add('hidden');
+            statusEl.textContent = '問題を追加するには、コーチ・監督としてログインしてください。';
+        }
+    });
+
+    document.getElementById('addQuizBtn').addEventListener('click', async () => {
+        const category = document.getElementById('newQuizCategory').value.trim();
+        const type = document.getElementById('newQuizType').value;
+        const question = document.getElementById('newQuizQuestion').value.trim();
+        const explanation = document.getElementById('newQuizExplanation').value.trim();
+
+        const choiceRows = [...document.querySelectorAll('#quizChoiceInputs > div')];
+        const choices = choiceRows
+            .map((row) => ({
+                text: row.querySelector('.quiz-choice-text').value.trim(),
+                correct: row.querySelector('.quiz-choice-correct').checked,
+            }))
+            .filter((c) => c.text.length > 0);
+
+        if (!category || !question || choices.length < 2) {
+            alert('カテゴリ・問題文と、2つ以上の選択肢を入力してください');
+            return;
+        }
+        if (!choices.some((c) => c.correct)) {
+            alert('正解の選択肢を、少なくとも1つチェックしてください');
+            return;
+        }
+
+        try {
+            await addDoc(collection(db, 'quizQuestions'), {
+                category, type, question, choices,
+                explanation: explanation || '',
+                addedBy: myDisplayName || auth.currentUser.email,
+                createdAt: new Date().toISOString(),
+            });
+
+            document.getElementById('newQuizCategory').value = '';
+            document.getElementById('newQuizQuestion').value = '';
+            document.getElementById('newQuizExplanation').value = '';
+            renderChoiceInputs();
+
+            alert('問題を追加しました！');
+            await loadQuizData();
+            renderCategoryFilter();
+            renderProgressBanner();
+        } catch (e) {
+            alert('問題を追加できませんでした。\n\nエラー内容：' + e.message);
+        }
+    });
+
+    // ===== 初期化(問題データを読み込んでから画面を組み立てる) =====
+    async function init() {
+        await loadQuizData();
+        renderCategoryFilter();
+        renderProgressBanner();
+        showEmptyOrStart();
+    }
+    init();
+</script>
+
+</body>
+</html>
